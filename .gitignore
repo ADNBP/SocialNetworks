@@ -1,0 +1,11 @@
+.project
+adnbppl.php
+.git/*
+.idea/*
+local_config.php
+local_config.json
+**/local_config.php
+**/local_config.json
+buckets/adnbp/config/*
+buckets/adnbp/localize/*
+tests/local_credentials
