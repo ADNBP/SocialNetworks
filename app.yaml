@@ -1,0 +1,61 @@
+application: ammlab-cloudframework-io
+module: testsocialnetworks
+version: 1
+runtime: php55
+api_version: 1
+
+handlers:
+
+# All Under CloudFrameWork is a ADNBP FrameWorkScript  
+- url: /CloudFrameWork(.+)$
+  script: ADNBP/adnbppl.php
+  secure: always
+
+- url: /api/(.+)$
+  script: ADNBP/adnbppl.php
+  secure: always
+
+- url: /$
+  script: ADNBP/adnbppl.php
+  secure: always
+
+# About the read config json config vars.
+- url: /((.+|)config\.json)$
+  script: ADNBP/models/foo.json
+
+# Serve html & php  as script and /
+- url: /(.+\.(html|php))$
+  script: \1
+  secure: always
+  
+# Serve images as static resources.
+- url: /(.+\.(gif|png|jpg|css|ico|txt|htm|js))$
+  static_files: \1
+  upload: .+\.(gif|png|jpg|css|ico|txt|htm|js)$
+  application_readable: true
+  secure: optional
+
+    
+- url: /(.+\..+)$
+  static_files: \1
+  upload: .+\..+$
+  application_readable: true
+  secure: optional
+  
+# Friendly Links as ADNBP FrameWorkScript  
+- url: /(.+)$
+  script: ADNBP/adnbppl.php
+  secure: always
+
+skip_files:
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+- ^buckets/.*$
+- ^tests/.*$
+- ^third-party/.*$
+- ^composer\.*$
+- local_config.php
+- local_config.json
