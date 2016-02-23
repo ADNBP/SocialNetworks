@@ -1,3 +1,7 @@
 {
-    "webapp: Default dir of the webapp":"/webapp"
+    "webapp: Default dir of the webapp":"/webapp",
+    "redirect: Redirect Patterns": {
+        "/":"/api/socialnetworks"
+    },
+    "include: Social networks credentials out of git":"{rootPath}/credentials.json"
 }
