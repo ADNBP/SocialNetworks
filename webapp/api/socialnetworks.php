@@ -379,10 +379,3 @@ if(!$api->error) {
 }
 
 $api->addReturnData($value);
-
-if (!($this->is('Development') || isset($api->formParams['nolog']))) {
-    $_logAcion = ($api->method == 'POST') ? 'insert' : 'access';
-    if ($api->error) $_logAcion = 'error';
-    $ret = $this->sendLog($_logAcion, '/api/cf_socialnetwork', implode('/', $api->params), $api->method . ': ' .
-        implode('/', $api->params), json_encode($value));
-}
