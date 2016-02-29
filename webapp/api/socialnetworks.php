@@ -13,10 +13,10 @@ if(!$api->error) {
             ,'client_secret'=>(strlen($this->getConf('GoogleOauth_CLIENT_SECRET')))?$this->getConf('GoogleOauth_CLIENT_SECRET'):null
             ,'client_scope'=>(is_array($this->getConf('GoogleOauth_SCOPE'))) && (count($this->getConf('GoogleOauth_SCOPE')) > 0)?$this->getConf('GoogleOauth_SCOPE'):null
         ],
-            'facebook'=>['available'=>$this->getConf('FacebookOauth') && strlen($this->getConf('FacebookOauth_APP_ID')) && strlen($this->getConf('FacebookOauth_APP_SECRET'))
-                ,'active'=>$this->getConf('GoogleOauth')
+            'facebook'=>['available'=>$this->getConf('FacebookOauth') && strlen($this->getConf('FacebookOauth_CLIENT_ID')) && strlen($this->getConf('FacebookOauth_CLIENT_SECRET'))
+                ,'active'=>$this->getConf('FacebookOauth')
                 ,'client_id'=>(strlen($this->getConf('FacebookOauth_CLIENT_ID')))?$this->getConf('FacebookOauth_CLIENT_ID'):null
-                ,'client_secret'=>(strlen($this->getConf('FacebookOauth_CLIENT_ID')))?$this->getConf('FacebookOauth_CLIENT_SECRET'):null
+                ,'client_secret'=>(strlen($this->getConf('FacebookOauth_CLIENT_SECRET')))?$this->getConf('FacebookOauth_CLIENT_SECRET'):null
                 ,'client_scope'=>(is_array($this->getConf('FacebookOauth_SCOPE'))) && (count($this->getConf('FacebookOauth_SCOPE')) > 0)?$this->getConf('FacebookOauth_SCOPE'):null
             ],
             'instagram'=>['available'=>$this->getConf('InstagramOauth') && strlen($this->getConf('InstagramOauth_CLIENT_ID')) && strlen($this->getConf('InstagramOauth_CLIENT_SECRET'))
@@ -98,7 +98,7 @@ if(!$api->error) {
                     switch($api->params[1]) {
                         // Auth into a SOCIAL NETWORK and show the credentials in the social network
                         case "auth":
-                            $redirectUrl = SocialNetworks::generateRequestUrl() . "api/cf_socialnetwork/" .
+                            $redirectUrl = SocialNetworks::generateRequestUrl() . "api/socialnetworks/" .
                                 $api->params[0] . "/auth/endcallback";
 
                             if ($api->params[2] == 'endcallback') {
@@ -212,19 +212,27 @@ if(!$api->error) {
                                     break;
                                 // Export people from GOOGLE+
                                 case 'people':
-                                    if ("post" !== $api->params[4]) {
-                                        // People in Google circles
-                                        try {
-                                            $value = json_decode($sc->getFollowers($api->params[0], $api->params[2],
-                                                $api->params[4], $api->params[5], $api->params[6]));
-                                        } catch (\Exception $e) {
-                                            $api->setError($e->getMessage());
-                                        }
-                                    } else {
+                                    if ("post" === $api->params[4]) {
                                         // People who like, share or were shared an activity/post
                                         try {
                                             $value = json_decode($sc->getFollowersInfo($api->params[0], $api->params[2],
                                                 $api->params[5]));
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
+                                    } else if ("circle" === $api->params[4]) {
+                                        // People in a circle
+                                        try {
+                                            $value = json_decode($sc->exportPeopleInCircle($api->params[0], $api->params[2],
+                                                $api->params[5], $api->params[6], $api->params[7], $api->params[8]));
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
+                                    } else {
+                                        // People in Google circles
+                                        try {
+                                            $value = json_decode($sc->getFollowers($api->params[0], $api->params[2],
+                                                $api->params[4], $api->params[5], $api->params[6]));
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
@@ -235,6 +243,15 @@ if(!$api->error) {
                                     try {
                                         $value = json_decode($sc->getPosts($api->params[0], $api->params[2],
                                             $api->params[5], $api->params[6], $api->params[7]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // Export circles from GOOGLE+
+                                case 'circles':
+                                    try {
+                                        $value = json_decode($sc->exportCircles($api->params[0], $api->params[2],
+                                            $api->params[4], $api->params[5], $api->params[6]));
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -266,6 +283,25 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                // Export pages in FACEBOOK
+                                case 'pages':
+                                    try {
+                                        $value = json_decode($sc->exportPages($api->params[0], $api->params[2],
+                                            $api->params[4], $api->params[5], $api->params[6]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                        // FACEBOOK user endpoints
+                        case "user":
+                            break;
+                        case "page":
+                            try {
+                                $value = json_decode($sc->getPage($api->params[0], $api->params[2]));
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
                             }
                             break;
                         // INSTAGRAM Relationships
@@ -347,6 +383,9 @@ if(!$api->error) {
                         $params["message"] = $api->formParams["message"];
                         if (isset($api->formParams["link"])) {
                             $params["link"] = $api->formParams["link"];
+                        }
+                        if (isset($api->formParams["object_attachment"])) {
+                            $params["object_attachment"] = $api->formParams["object_attachment"];
                         }
                     }
                     try {
