@@ -192,7 +192,7 @@ if(!$api->error) {
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
-                                        // Export photos in an album FACEBOOK
+                                    // Export photos in an album FACEBOOK
                                     } else if (isset($api->params[7])) {
                                         try {
                                             $value = json_decode($sc->exportPhotosFromAlbum($api->params[0], $api->params[2],
@@ -200,10 +200,11 @@ if(!$api->error) {
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
-                                        // Export images from GOOGLE drive, INSTAGRAM
+                                    // Export images from GOOGLE drive, INSTAGRAM, FACEBOOK
                                     } else {
                                         try {
-                                            $value = json_decode($sc->exportMedia($api->params[0], $api->params[2],
+                                            $value = json_decode($sc->exportMedia($api->params[0],
+                                                SocialNetworks::ENTITY_USER, $api->params[2],
                                                 $api->params[4], $api->params[5], $api->params[6]));
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
@@ -298,10 +299,23 @@ if(!$api->error) {
                         case "user":
                             break;
                         case "page":
-                            try {
-                                $value = json_decode($sc->getPage($api->params[0], $api->params[2]));
-                            } catch (\Exception $e) {
-                                $api->setError($e->getMessage());
+                            switch ($api->params[2]) {
+                                case 'export':
+                                    try {
+                                        $value = json_decode($sc->exportMedia($api->params[0],
+                                            SocialNetworks::ENTITY_PAGE, $api->params[3],
+                                            $api->params[5], $api->params[6], $api->params[7]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                default:
+                                    try {
+                                        $value = json_decode($sc->getPage($api->params[0], $api->params[2]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
                             }
                             break;
                         // INSTAGRAM Relationships
@@ -342,17 +356,51 @@ if(!$api->error) {
                     $value = $_SESSION['params_socialnetworks'][$api->params[0]];
                     break;
                 // The rest of social networks.
+                case "page":
+                    switch ($api->params[3]) {
+                        // Import photo to FACEBOOK (page)
+                        case 'import':
+                            switch ($api->params[4]) {
+                                case 'media':
+                                    try {
+                                        $parameters = array();
+                                        $parameters["entity"] = SocialNetworks::ENTITY_PAGE;
+                                        $parameters["id"] = $api->params[2];
+                                        $parameters["media_type"] = $api->formParams["media_type"];
+                                        $parameters["value"] = $api->formParams["value"];
+                                        if (isset($api->formParams["title"])) {
+                                            $parameters["title"] = $api->formParams["title"];
+                                        }
+                                        if (isset($api->params[5])) {
+                                            $parameters["album_id"] = $api->formParams["album_id"];
+                                        }
+                                        $value = json_decode($sc->importMedia($api->params[0], $parameters));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                    }
+                    break;
                 // IMPORT endpoints
                 case 'import':
                     switch ($api->params[3]) {
                         // Import media (video/image) to GOOGLE+
+                        // Import photo to FACEBOOK (user)
                         case 'media':
                             try {
                                 // Media title and album id is for FACEBOOK
-                                $value = json_decode($sc->importMedia($api->params[0], $api->params[2],
-                                    $api->formParams["media_type"], $api->formParams["value"],
-                                    (isset($api->formParams["title"])?$api->formParams["title"]:null),
-                                    $api->params[4]));
+                                $parameters = array();
+                                $parameters["entity"] = SocialNetworks::ENTITY_USER;
+                                $parameters["id"] = $api->params[2];
+                                $parameters["media_type"] = $api->formParams["media_type"];
+                                $parameters["value"] = $api->formParams["value"];
+                                if (isset($api->formParams["title"])) {
+                                    $parameters["title"] = $api->formParams["title"];
+                                }
+                                $parameters["album_id"] = $api->params[4];
+                                $value = json_decode($sc->importMedia($api->params[0], $parameters));
                             } catch (\Exception $e) {
                                 $api->setError($e->getMessage());
                             }
