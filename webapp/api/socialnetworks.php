@@ -195,7 +195,8 @@ if(!$api->error) {
                                     // Export photos in an album FACEBOOK
                                     } else if (isset($api->params[7])) {
                                         try {
-                                            $value = json_decode($sc->exportPhotosFromAlbum($api->params[0], $api->params[2],
+                                            $value = json_decode($sc->exportPhotosFromAlbum($api->params[0],
+                                                SocialNetworks::ENTITY_USER, $api->params[2],
                                                 $api->params[4], $api->params[5], $api->params[6], $api->params[7]));
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
@@ -278,7 +279,8 @@ if(!$api->error) {
                                 // Export albums in FACEBOOK
                                 case 'albums':
                                     try {
-                                        $value = json_decode($sc->exportPhotosAlbumsList($api->params[0], $api->params[2],
+                                        $value = json_decode($sc->exportPhotosAlbumsList($api->params[0],
+                                            SocialNetworks::ENTITY_USER, $api->params[2],
                                             $api->params[4], $api->params[5], $api->params[6]));
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
@@ -299,24 +301,50 @@ if(!$api->error) {
                         case "user":
                             break;
                         case "page":
-                            switch ($api->params[2]) {
-                                case 'export':
-                                    try {
-                                        $value = json_decode($sc->exportMedia($api->params[0],
-                                            SocialNetworks::ENTITY_PAGE, $api->params[3],
-                                            $api->params[5], $api->params[6], $api->params[7]));
-                                    } catch (\Exception $e) {
-                                        $api->setError($e->getMessage());
-                                    }
-                                    break;
-                                default:
-                                    try {
-                                        $value = json_decode($sc->getPage($api->params[0], $api->params[2]));
-                                    } catch (\Exception $e) {
-                                        $api->setError($e->getMessage());
-                                    }
-                                    break;
+                            if("export" === $api->params[3]) {
+                                switch ($api->params[4]) {
+                                    case "album":
+                                        if ("media" === $api->params[6]) {
+                                            try {
+                                                $value = json_decode($sc->exportPhotosFromAlbum($api->params[0],
+                                                    SocialNetworks::ENTITY_PAGE, $api->params[2], $api->params[5],
+                                                    $api->params[7], $api->params[8], $api->params[9]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                        } else {
+                                            try {
+                                                $value = json_decode($sc->exportPhotosAlbumsList($api->params[0],
+                                                    SocialNetworks::ENTITY_PAGE, $api->params[2],
+                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                        }
+                                        break;
+                                }
+                                break;
+                            } else {
+                                switch ($api->params[2]) {
+                                    case 'export':
+                                        try {
+                                            $value = json_decode($sc->exportMedia($api->params[0],
+                                                SocialNetworks::ENTITY_PAGE, $api->params[3],
+                                                $api->params[5], $api->params[6], $api->params[7]));
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
+                                        break;
+                                    default:
+                                        try {
+                                            $value = json_decode($sc->getPage($api->params[0], $api->params[2]));
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
+                                        break;
+                                }
                             }
+
                             break;
                         // INSTAGRAM Relationships
                         case 'relationship':
@@ -358,6 +386,36 @@ if(!$api->error) {
                 // The rest of social networks.
                 case "page":
                     switch ($api->params[3]) {
+                        case 'create':
+                            switch ($api->params[4]) {
+                                case 'album':
+                                    try {
+                                        $value = json_decode($sc->createPhotosAlbum($api->params[0],
+                                            SocialNetworks::ENTITY_PAGE, $api->params[2],
+                                            $api->formParams["title"], $api->formParams["caption"]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case 'post':
+                                    $params["message"] = $api->formParams["message"];
+                                    if (isset($api->formParams["link"])) {
+                                        $params["link"] = $api->formParams["link"];
+                                    }
+                                    if (isset($api->formParams["object_attachment"])) {
+                                        $params["object_attachment"] = $api->formParams["object_attachment"];
+                                    }
+
+                                    try {
+                                        $value = json_decode($sc->post($api->params[0],
+                                            SocialNetworks::ENTITY_PAGE, $api->params[2],
+                                            $params));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
                         // Import photo to FACEBOOK (page)
                         case 'import':
                             switch ($api->params[4]) {
@@ -371,9 +429,22 @@ if(!$api->error) {
                                         if (isset($api->formParams["title"])) {
                                             $parameters["title"] = $api->formParams["title"];
                                         }
-                                        if (isset($api->params[5])) {
-                                            $parameters["album_id"] = $api->formParams["album_id"];
+                                        $value = json_decode($sc->importMedia($api->params[0], $parameters));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case 'album':
+                                    try {
+                                        $parameters = array();
+                                        $parameters["entity"] = SocialNetworks::ENTITY_PAGE;
+                                        $parameters["id"] = $api->params[2];
+                                        $parameters["media_type"] = $api->formParams["media_type"];
+                                        $parameters["value"] = $api->formParams["value"];
+                                        if (isset($api->formParams["title"])) {
+                                            $parameters["title"] = $api->formParams["title"];
                                         }
+                                        $parameters["album_id"] = $api->params[5];
                                         $value = json_decode($sc->importMedia($api->params[0], $parameters));
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
@@ -437,7 +508,9 @@ if(!$api->error) {
                         }
                     }
                     try {
-                        $value = json_decode($sc->post($api->params[0], $params));
+                        $value = json_decode($sc->post($api->params[0],
+                            SocialNetworks::ENTITY_USER, $api->params[2],
+                            $params));
                     } catch (\Exception $e) {
                         $api->setError($e->getMessage());
                     }
@@ -454,7 +527,8 @@ if(!$api->error) {
                 // Create photo album in FACEBOOK
                 case "album":
                     try {
-                        $value = json_decode($sc->createPhotosAlbum($api->params[0], $api->params[2],
+                        $value = json_decode($sc->createPhotosAlbum($api->params[0],
+                            SocialNetworks::ENTITY_USER, $api->params[2],
                             $api->formParams["title"], $api->formParams["caption"]));
                     } catch (\Exception $e) {
                         $api->setError($e->getMessage());
