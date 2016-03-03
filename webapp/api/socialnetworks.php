@@ -25,6 +25,12 @@ if(!$api->error) {
                 ,"client_secret"=>(strlen($this->getConf("InstagramOauth_CLIENT_SECRET")))?$this->getConf("InstagramOauth_CLIENT_SECRET"):null
                 ,"client_scope"=>(is_array($this->getConf("InstagramOauth_SCOPE"))) && (count($this->getConf("InstagramOauth_SCOPE")) > 0)?$this->getConf("InstagramOauth_SCOPE"):null
             ],
+            "pinterest"=>["available"=>$this->getConf("PinterestOauth") && strlen($this->getConf("PinterestOauth_CLIENT_ID")) && strlen($this->getConf("PinterestOauth_CLIENT_SECRET"))
+                ,"active"=>$this->getConf("PinterestOauth")
+                ,"client_id"=>(strlen($this->getConf("PinterestOauth_CLIENT_ID")))?$this->getConf("PinterestOauth_CLIENT_ID"):null
+                ,"client_secret"=>(strlen($this->getConf("PinterestOauth_CLIENT_SECRET")))?$this->getConf("PinterestOauth_CLIENT_SECRET"):null
+                ,"client_scope"=>(is_array($this->getConf("PinterestOauth_SCOPE"))) && (count($this->getConf("PinterestOauth_SCOPE")) > 0)?$this->getConf("PinterestOauth_SCOPE"):null
+            ],
             "twitter"=>["available"=>$this->getConf("TwitterOauth") && strlen($this->getConf("TwitterOauth_KEY")) && strlen($this->getConf("TwitterOauth_SECRET"))
                 ,"active"=>$this->getConf("TwitterOauth")
                 ,"client_id"=>(strlen($this->getConf("TwitterOauth_KEY")))?"****":"missing"
@@ -159,6 +165,17 @@ if(!$api->error) {
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
+                            } else if ("pinterest" === $api->params[0]) {
+                                try {
+                                    $profile = $sc->checkCredentials($api->params[0], array(
+                                        "access_token" => $credentials[$api->params[0]]["access_token"]
+                                    ));
+                                    $profile = json_decode($profile, true);
+                                    $value = $_SESSION["params_socialnetworks"][$api->params[0]];
+                                    $value["user_id"] = $profile["id"];
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
                             }
                             break;
                         // Refresh GOOGLE credentials and returned new ones
@@ -232,6 +249,7 @@ if(!$api->error) {
                                             }
                                             break;
                                         case "subscriber":
+                                            // INSTAGRAM Subscribers
                                             try {
                                                 $value = json_decode($sc->exportSubscribers($api->params[0],
                                                     $api->params[1], $api->params[2], 0,
@@ -304,7 +322,7 @@ if(!$api->error) {
                                                 }
                                             }
                                             break;
-                                        // Export pages in FACEBOOK
+                                        // Export user's pages in FACEBOOK
                                         case "page":
                                             try {
                                                 $value = json_decode($sc->exportPages($api->params[0],
@@ -338,6 +356,7 @@ if(!$api->error) {
                             break;
                         case "page":
                             switch($api->params[3]) {
+                                // FACEBOOK Page Info
                                 case "info":
                                     try {
                                         $value = json_decode($sc->getPage($api->params[0], $api->params[1], $api->params[2]));
@@ -345,8 +364,10 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+
                                 case "export":
                                     switch ($api->params[4]) {
+                                        // Export page's media from FACEBOOK
                                         case "media":
                                             try {
                                                 $value = json_decode($sc->exportMedia($api->params[0],
@@ -357,6 +378,7 @@ if(!$api->error) {
                                             }
                                             break;
                                         case "album":
+                                            // Export media from a page's album in FACEBOOK
                                             if ("media" === $api->params[6]) {
                                                 try {
                                                     $value = json_decode($sc->exportPhotosFromAlbum($api->params[0],
@@ -366,6 +388,7 @@ if(!$api->error) {
                                                     $api->setError($e->getMessage());
                                                 }
                                             } else {
+                                                // Export page's albums from FACEBOOK
                                                 try {
                                                     $value = json_decode($sc->exportPhotosAlbumsList($api->params[0],
                                                         $api->params[1], $api->params[2],
