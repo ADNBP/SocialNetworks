@@ -332,6 +332,26 @@ if(!$api->error) {
                                                 $api->setError($e->getMessage());
                                             }
                                             break;
+                                        // Export user's pins in PINTEREST
+                                        case "pin":
+                                            try {
+                                                $value = json_decode($sc->exportPins($api->params[0],
+                                                    $api->params[1], $api->params[2], null,
+                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        // Export user's boards in PINTEREST
+                                        case "board":
+                                            try {
+                                                $value = json_decode($sc->exportBoards($api->params[0],
+                                                    $api->params[1], $api->params[2], null,
+                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
                                     }
                                     break;
                                 // INSTAGRAM Relationships end points
@@ -343,15 +363,38 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
-                                // INSTAGRAM user searching
                                 case "search":
-                                    try {
-                                        $value = json_decode($sc->searchUsers($api->params[0], $api->params[1], $api->params[2],
-                                            $api->params[5], $api->params[6], $api->params[7], $api->params[8]));
-                                    } catch (\Exception $e) {
-                                        $api->setError($e->getMessage());
+                                    switch($api->params[4]) {
+                                        // INSTAGRAM / PINTEREST user searching
+                                        case "user":
+                                            try {
+                                                $value = json_decode($sc->searchUsers($api->params[0], $api->params[1], $api->params[2],
+                                                    $api->params[5], $api->params[6], $api->params[7], $api->params[8]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        // PINTEREST pins searching
+                                        case "pin":
+                                            try {
+                                                $value = json_decode($sc->exportPins($api->params[0],
+                                                    $api->params[1], $api->params[2], $api->params[5],
+                                                    $api->params[6], $api->params[7], $api->params[8]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        // PINTEREST boards searching
+                                        case "board":
+                                            try {
+                                                $value = json_decode($sc->exportBoards($api->params[0],
+                                                    $api->params[1], $api->params[2], $api->params[5],
+                                                    $api->params[6], $api->params[7], $api->params[8]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
                                     }
-                                    break;
                             }
                             break;
                         case "page":
