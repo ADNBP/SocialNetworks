@@ -534,6 +534,16 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                // Create a board in PINTEREST
+                                case "board":
+                                    try {
+                                        $value = json_decode($sc->createBoard($api->params[0],
+                                            $api->params[1], $api->params[2],
+                                            $api->formParams["name"], $api->formParams["description"]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
                             }
                             break;
                         // USER IMPORT endpoints
