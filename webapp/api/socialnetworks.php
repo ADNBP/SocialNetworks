@@ -408,6 +408,7 @@ if(!$api->error) {
                                     }
                             }
                             break;
+                        // GET PAGE endpoints
                         case "page":
                             switch($api->params[3]) {
                                 // FACEBOOK Page Info
@@ -455,6 +456,7 @@ if(!$api->error) {
                                     break;
                             }
                             break;
+                        // GET BOARD endpoints
                         case "board":
                             switch($api->params[4]) {
                                 // PINTEREST Board Info
@@ -546,6 +548,7 @@ if(!$api->error) {
                                     break;
                             }
                             break;
+                         break;
                         // USER IMPORT endpoints
                         case "import":
                             switch ($api->params[4]) {
@@ -663,6 +666,23 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                            }
+                            break;
+
+
+                    }
+                    break;
+                // POST BOARD endpoints
+                case "board":
+                    switch($api->params[4]) {
+                        // PINTEREST Board edition
+                        case "edit":
+                            try {
+                                $value = json_decode($sc->editBoard($api->params[0], $api->params[1],
+                                    $api->params[2], $api->params[3],
+                                    $api->formParams["name"], $api->formParams["description"]));
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
                             }
                             break;
                     }
