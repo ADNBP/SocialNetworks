@@ -342,6 +342,16 @@ if(!$api->error) {
                                                 $api->setError($e->getMessage());
                                             }
                                             break;
+                                        // Export pins liked by the user in PINTEREST
+                                        case "like":
+                                            try {
+                                                $value = json_decode($sc->exportPinsLiked($api->params[0],
+                                                    $api->params[1], $api->params[2], null,
+                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
                                         // Export user's boards in PINTEREST
                                         case "board":
                                             try {
