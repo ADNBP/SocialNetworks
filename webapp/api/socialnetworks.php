@@ -173,6 +173,7 @@ if(!$api->error) {
                                     $profile = json_decode($profile, true);
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                     $value["user_id"] = $profile["id"];
+                                    $value["user_name"] = $profile["username"];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -417,7 +418,6 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
-
                                 case "export":
                                     switch ($api->params[4]) {
                                         // Export page's media from FACEBOOK
@@ -451,6 +451,19 @@ if(!$api->error) {
                                                 }
                                             }
                                             break;
+                                    }
+                                    break;
+                            }
+                            break;
+                        case "board":
+                            switch($api->params[4]) {
+                                // PINTEREST Board Info
+                                case "info":
+                                    try {
+                                        $value = json_decode($sc->getBoard($api->params[0], $api->params[1],
+                                                                $api->params[2], $api->params[3]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
                                     }
                                     break;
                             }
