@@ -456,7 +456,7 @@ if(!$api->error) {
                                     break;
                             }
                             break;
-                        // GET BOARD endpoints
+                        // GET PINTEREST boards endpoints
                         case "board":
                             switch($api->params[4]) {
                                 // PINTEREST Board Info
@@ -464,6 +464,36 @@ if(!$api->error) {
                                     try {
                                         $value = json_decode($sc->getBoard($api->params[0], $api->params[1],
                                                                 $api->params[2], $api->params[3]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // PINTEREST Delete Board
+                                case "delete":
+                                    try {
+                                        $value = json_decode($sc->deleteBoard($api->params[0], $api->params[1],
+                                            $api->params[2], $api->params[3]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                        // GET PINTEREST pins endpoints
+                        case "pin":
+                            switch($api->params[3]) {
+                                // PINTEREST Pin Info
+                                case "info":
+                                    try {
+                                        $value = json_decode($sc->getPin($api->params[0], $api->params[1], $api->params[2]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // PINTEREST Delete Pin
+                                case "delete":
+                                    try {
+                                        $value = json_decode($sc->deletePin($api->params[0], $api->params[1], $api->params[2]));
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -536,14 +566,26 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
-                                // Create a board in PINTEREST
                                 case "board":
-                                    try {
-                                        $value = json_decode($sc->createBoard($api->params[0],
-                                            $api->params[1], $api->params[2],
-                                            $api->formParams["name"], $api->formParams["description"]));
-                                    } catch (\Exception $e) {
-                                        $api->setError($e->getMessage());
+                                    // Create a pin in PINTEREST
+                                    if ("pin" === $api->params[7]) {
+                                        try {
+                                            $value = json_decode($sc->createPin($api->params[0],
+                                                $api->params[1], $api->params[2], $api->params[5], $api->params[6],
+                                                $api->formParams["note"], $api->formParams["image_type"],
+                                                $api->formParams["image"]));
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
+                                    // Create a board in PINTEREST
+                                    } else {
+                                        try {
+                                            $value = json_decode($sc->createBoard($api->params[0],
+                                                $api->params[1], $api->params[2],
+                                                $api->formParams["name"], $api->formParams["description"]));
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
                                     }
                                     break;
                             }
