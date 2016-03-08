@@ -477,6 +477,16 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                // PINTEREST Export Pins from a Board
+                                case "export":
+                                    try {
+                                        $value = json_decode($sc->exportPinsFromBoard($api->params[0], $api->params[1],
+                                            $api->params[2], $api->params[3],
+                                            $api->params[6], $api->params[7],$api->params[8]));
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
                             }
                             break;
                         // GET PINTEREST pins endpoints
