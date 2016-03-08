@@ -572,8 +572,8 @@ if(!$api->error) {
                                         try {
                                             $value = json_decode($sc->createPin($api->params[0],
                                                 $api->params[1], $api->params[2], $api->params[5], $api->params[6],
-                                                $api->formParams["note"], $api->formParams["image_type"],
-                                                $api->formParams["image"]));
+                                                $api->formParams["note"], $api->formParams["link"],
+                                                $api->formParams["image_type"],$api->formParams["image"]));
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
@@ -714,7 +714,7 @@ if(!$api->error) {
 
                     }
                     break;
-                // POST BOARD endpoints
+                // POST Boards endpoints
                 case "board":
                     switch($api->params[4]) {
                         // PINTEREST Board edition
@@ -723,6 +723,21 @@ if(!$api->error) {
                                 $value = json_decode($sc->editBoard($api->params[0], $api->params[1],
                                     $api->params[2], $api->params[3],
                                     $api->formParams["name"], $api->formParams["description"]));
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
+                            break;
+                    }
+                    break;
+                // POST Pins endpoints
+                case "pin":
+                    switch($api->params[3]) {
+                        // PINTEREST Pin edition
+                        case "edit":
+                            try {
+                                $value = json_decode($sc->editPin($api->params[0], $api->params[1],
+                                    $api->params[2], $api->formParams["board"], $api->formParams["note"],
+                                    $api->formParams["link"]));
                             } catch (\Exception $e) {
                                 $api->setError($e->getMessage());
                             }
