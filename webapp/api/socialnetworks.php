@@ -251,12 +251,46 @@ if(!$api->error) {
                                             break;
                                         case "subscriber":
                                             // INSTAGRAM Subscribers
-                                            try {
-                                                $value = json_decode($sc->exportSubscribers($api->params[0],
-                                                    $api->params[1], $api->params[2], 0,
-                                                    $api->params[5], $api->params[6]));
-                                            } catch (\Exception $e) {
-                                                $api->setError($e->getMessage());
+                                            if ("instagram" === $api->params[0]) {
+                                                try {
+                                                    $value = json_decode($sc->exportSubscribers($api->params[0],
+                                                        $api->params[1], $api->params[2], 0,
+                                                        $api->params[5], $api->params[6]));
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                                break;
+                                            // PINTEREST Subscribers
+                                            } else {
+                                                try {
+                                                    $value = json_decode($sc->exportSubscribers($api->params[0],
+                                                        $api->params[1], $api->params[2], $api->params[5],
+                                                        $api->params[6], $api->params[7]));
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                                break;
+                                            }
+                                        case "following":
+                                            switch($api->params[5]) {
+                                                case "board":
+                                                    try {
+                                                        $value = json_decode($sc->exportFollowingBoards($api->params[0],
+                                                            $api->params[1], $api->params[2],
+                                                            $api->params[6], $api->params[7], $api->params[8]));
+                                                    } catch (\Exception $e) {
+                                                        $api->setError($e->getMessage());
+                                                    }
+                                                    break;
+                                                case "interest":
+                                                    try {
+                                                        $value = json_decode($sc->exportFollowingInterests($api->params[0],
+                                                            $api->params[1], $api->params[2],
+                                                            $api->params[6], $api->params[7], $api->params[8]));
+                                                    } catch (\Exception $e) {
+                                                        $api->setError($e->getMessage());
+                                                    }
+                                                    break;
                                             }
                                             break;
                                         // GOOGLE Posts/Activities end points
