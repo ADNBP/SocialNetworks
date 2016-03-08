@@ -634,7 +634,6 @@ if(!$api->error) {
                                     break;
                             }
                             break;
-                         break;
                         // USER IMPORT endpoints
                         case "import":
                             switch ($api->params[4]) {
@@ -672,14 +671,24 @@ if(!$api->error) {
                                     break;
                             }
                             break;
-                        // Modify INSTAGRAM relationship
+                        // Modify INSTAGRAM/PINTEREST user relationship
                         case "relationship":
-                            try {
-                                $value = json_decode($sc->modifyUserRelationship($api->params[0],
-                                    $api->params[1], $api->params[2],
-                                    $api->params[5], $api->formParams["action"]));
-                            } catch (\Exception $e) {
-                                $api->setError($e->getMessage());
+                            if ("user" === $api->params[4]) {
+                                try {
+                                    $value = json_decode($sc->modifyUserRelationship($api->params[0],
+                                        $api->params[1], $api->params[2],
+                                        $api->params[5], $api->formParams["action"]));
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            } else if ("board" === $api->params[4]) {
+                                try {
+                                    $value = json_decode($sc->modifyBoardRelationship($api->params[0],
+                                        $api->params[1], $api->params[2],
+                                        $api->params[5], $api->formParams["action"]));
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
                             }
                             break;
                     }
