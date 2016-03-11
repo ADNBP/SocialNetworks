@@ -1,8 +1,8 @@
 {
     "webapp: Default dir of the webapp":"/webapp",
-    "redirect: Redirect Patterns": {
+    "redirect: Redirect Patterns": [{
         "/":"/api/socialnetworks/status"
-    },
+    }],
     "true: Base of credentials":{
         "--": "Oauth connections",
         "AllowOauth":true,
@@ -39,5 +39,5 @@
         "InstagramOauth_SCOPE":["basic","public_content","comments","follower_list","relationships","likes"]
 
     },
-    "include: Social networks credentials keys.":"{rootPath}/credentials.json"
+    "include: Social networks credentials keys.":"{{rootPath}}/credentials.json"
 }

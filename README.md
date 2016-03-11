@@ -1,5 +1,8 @@
 # SocialNetworks
 
+php composer.phar update --optimize-autoloader --no-dev
+
+
 Project to work with SocialNetworks to test the method.
 # upload to preproduction
 appcfg.py update .
