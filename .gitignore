@@ -1,6 +1,6 @@
 .project
 adnbppl.php
 .git/*
-.idea/*
+**/.idea/*
 credentials.json
 /vendor/

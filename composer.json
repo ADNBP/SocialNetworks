@@ -1,13 +1,19 @@
 {
     "name": "salvador/social-networks",
-    "require": {
-        "cloudframework-io/cfsocial": "dev-master"
-    },
     "authors": [
         {
             "name": "Salvador Castro",
             "email": "sc@bloombees.com"
         }
     ],
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/CloudFramework-io/CFSocial.git"
+        }
+    ],
+    "require": {
+        "cloudframework-io/cfsocial": "dev-master"
+    }
 }
