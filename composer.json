@@ -1,0 +1,13 @@
+{
+    "name": "salvador/social-networks",
+    "require": {
+        "cloudframework-io/cfsocial": "dev-master"
+    },
+    "authors": [
+        {
+            "name": "Salvador Castro",
+            "email": "sc@bloombees.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
