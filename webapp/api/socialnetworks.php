@@ -31,10 +31,11 @@ if(!$api->error) {
                 ,"client_secret"=>(strlen($this->getConf("PinterestOauth_CLIENT_SECRET")))?$this->getConf("PinterestOauth_CLIENT_SECRET"):null
                 ,"client_scope"=>(is_array($this->getConf("PinterestOauth_SCOPE"))) && (count($this->getConf("PinterestOauth_SCOPE")) > 0)?$this->getConf("PinterestOauth_SCOPE"):null
             ],
-            "twitter"=>["available"=>$this->getConf("TwitterOauth") && strlen($this->getConf("TwitterOauth_KEY")) && strlen($this->getConf("TwitterOauth_SECRET"))
+            "twitter"=>["available"=>$this->getConf("TwitterOauth") && strlen($this->getConf("TwitterOauth_CLIENT_ID")) && strlen($this->getConf("TwitterOauth_CLIENT_SECRET"))
                 ,"active"=>$this->getConf("TwitterOauth")
-                ,"client_id"=>(strlen($this->getConf("TwitterOauth_KEY")))?"****":"missing"
-                ,"client_secret"=>(strlen($this->getConf("TwitterOauth_SECRET")))?"****":"missing"
+                ,"client_id"=>(strlen($this->getConf("TwitterOauth_CLIENT_ID")))?$this->getConf("TwitterOauth_CLIENT_ID"):null
+                ,"client_secret"=>(strlen($this->getConf("TwitterOauth_CLIENT_SECRET")))?$this->getConf("TwitterOauth_CLIENT_SECRET"):null
+                ,"client_scope"=>(is_array($this->getConf("TwitterOauth_SCOPE"))) /*&& (count($this->getConf("TwitterOauth_SCOPE")) > 0)*/?$this->getConf("TwitterOauth_SCOPE"):null
             ],
             "vkontakte"=>["available"=>$this->getConf("VKontakteOauth") && strlen($this->getConf("VKontakteOauth_APP_ID")) && strlen($this->getConf("VKontakteOauth_APP_ID"))
                 ,"active"=>$this->getConf("VKontakteOauth")
@@ -109,10 +110,16 @@ if(!$api->error) {
                                 $api->params[0] . "/auth/endcallback";
 
                             if ($api->params[2] == "endcallback") {
-                                $code = $_GET["code"];
+                                $oauthVerifier = null;
+                                if ("twitter" === $api->params[0]) {
+                                    $code = $_GET["oauth_token"];
+                                    $oauthVerifier = $_GET["oauth_verifier"];
+                                } else {
+                                    $code = $_GET["code"];
+                                }
 
                                 try {
-                                    $value = $sc->confirmAuthorization($api->params[0], $code, $redirectUrl);
+                                    $value = $sc->confirmAuthorization($api->params[0], $code, $oauthVerifier, $redirectUrl);
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -174,6 +181,18 @@ if(!$api->error) {
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                     $value["user_id"] = $profile["id"];
                                     $value["user_name"] = $profile["username"];
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            } else if ("twitter" === $api->params[0]) {
+                                try {
+                                    $profile = $sc->checkCredentials($api->params[0], array(
+                                        "access_token" => $credentials[$api->params[0]]["access_token"],
+                                        "access_token_secret" => $credentials[$api->params[0]]["access_token_secret"],
+                                    ));
+                                    $profile = json_decode($profile, true);
+                                    $value = $_SESSION["params_socialnetworks"][$api->params[0]];
+                                    $value["user_id"] = $profile["id"];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
