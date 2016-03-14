@@ -3,5 +3,5 @@
     "redirect: Redirect Patterns": [{
         "/":"/api/socialnetworks/status"
     }],
-    "include: Social networks credentials keys.":"{rootPath}/credentials.json"
+    "include: Social networks credentials keys.":"{{rootPath}}/credentials.json"
 }
