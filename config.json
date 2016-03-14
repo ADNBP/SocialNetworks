@@ -3,41 +3,5 @@
     "redirect: Redirect Patterns": [{
         "/":"/api/socialnetworks/status"
     }],
-    "true: Base of credentials":{
-        "--": "Oauth connections",
-        "AllowOauth":true,
-        "--":"GOOGLE, https://console.developers.google.com/project/apps~{YOUR-PROJECT}/apiui/credential",
-        "GoogleOauth": false,
-        "GoogleOauth_CLIENT_ID": "XXXXXXXX",
-        "GoogleOauth_CLIENT_SECRET": "XXXXXXX",
-        "GoogleOauth_SCOPE": [
-            "https://www.googleapis.com/auth/plus.me",
-            "https://www.googleapis.com/auth/drive",
-            "https://www.googleapis.com/auth/plus.circles.read",
-            "https://www.googleapis.com/auth/plus.stream.write",
-            "https://www.googleapis.com/auth/plus.stream.read",
-            "https://www.googleapis.com/auth/plus.media.upload",
-            "email",
-            "profile"
-        ],
-        "--":"FACEBOOK, https://developers.facebook.com/x/apps/{ID}/dashboard/",
-        "FacebookOauth":false,
-        "FacebookOauth_CLIENT_ID":"XXXXXXX",
-        "FacebookOauth_CLIENT_SECRET":"XXXXXXX",
-        "FacebookOauth_SCOPE":[],
-
-        "--":"INSTAGRAM, https://www.instagram.com/developer/clients/manage/?edited=CloudFrameWork.io",
-        "InstagramOauth":false,
-        "InstagramOauth_CLIENT_ID":"XXXXXXXXXXXXXX",
-        "InstagramOauth_CLIENT_SECRET":"XXXXXXXXXXX",
-        "InstagramOauth_SCOPE":["basic","public_content","comments","follower_list","relationships","likes"],
-
-        "--":"TWITTER, https://apps.twitter.com/app/9533289/keys",
-        "TwitterOauth":false,
-        "TwitterOauth_KEY":"XXXXXXXXXXXXXXXX",
-        "TwitterOauth_SECRET":"XXXXXXXXXXXXX",
-        "InstagramOauth_SCOPE":["basic","public_content","comments","follower_list","relationships","likes"]
-
-    },
-    "include: Social networks credentials keys.":"{{rootPath}}/credentials.json"
+    "include: Social networks credentials keys.":"{rootPath}/credentials.json"
 }
