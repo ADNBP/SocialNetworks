@@ -166,7 +166,6 @@ if(!$api->error) {
                                     $profile = $sc->checkCredentials($api->params[0], array(
                                         "access_token" => $credentials[$api->params[0]]["access_token"]
                                     ));
-                                    $profile = json_decode($profile, true);
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                     $value["user_id"] = $profile["user_id"];
                                 } catch (\Exception $e) {
@@ -177,7 +176,6 @@ if(!$api->error) {
                                     $profile = $sc->checkCredentials($api->params[0], array(
                                         "access_token" => $credentials[$api->params[0]]["access_token"]
                                     ));
-                                    $profile = json_decode($profile, true);
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                     $value["user_id"] = $profile["id"];
                                     $value["user_name"] = $profile["username"];
@@ -190,7 +188,6 @@ if(!$api->error) {
                                         "access_token" => $credentials[$api->params[0]]["access_token"],
                                         "access_token_secret" => $credentials[$api->params[0]]["access_token_secret"],
                                     ));
-                                    $profile = json_decode($profile, true);
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                     $value["user_id"] = $profile["id"];
                                 } catch (\Exception $e) {
@@ -214,7 +211,7 @@ if(!$api->error) {
                         // Revoke grant to GOOGLE credentials
                         case "revoke":
                             try {
-                                $value = json_decode($sc->revokeToken($api->params[0]));
+                                $value = $sc->revokeToken($api->params[0]);
                             } catch (\Exception $e) {
                                 $api->setError($e->getMessage());
                             }
@@ -225,8 +222,8 @@ if(!$api->error) {
                                 // Get SOCIAL NETWORK user profile
                                 case "profile":
                                     try {
-                                        $value = json_decode($sc->getProfile($api->params[0],
-                                            $api->params[1], $api->params[2]));
+                                        $value = $sc->getProfile($api->params[0],
+                                            $api->params[1], $api->params[2]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -239,18 +236,18 @@ if(!$api->error) {
                                             // People in a circle
                                             if ("people" === $api->params[6]) {
                                                 try {
-                                                    $value = json_decode($sc->exportPeopleInCircle($api->params[0],
+                                                    $value = $sc->exportPeopleInCircle($api->params[0],
                                                         $api->params[1], $api->params[2], $api->params[5],
-                                                        $api->params[7], $api->params[8], $api->params[9]));
+                                                        $api->params[7], $api->params[8], $api->params[9]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
                                             // Export circles from GOOGLE+
                                             } else {
                                                 try {
-                                                    $value = json_decode($sc->exportCircles($api->params[0],
+                                                    $value = $sc->exportCircles($api->params[0],
                                                         $api->params[1], $api->params[2],
-                                                        $api->params[5], $api->params[6], $api->params[7]));
+                                                        $api->params[5], $api->params[6], $api->params[7]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
@@ -261,9 +258,9 @@ if(!$api->error) {
                                         case "follower":
                                             // People in Google circles / INSTAGRAM Followers
                                             try {
-                                                $value = json_decode($sc->exportFollowers($api->params[0],
+                                                $value = $sc->exportFollowers($api->params[0],
                                                     $api->params[1], $api->params[2],
-                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                                    $api->params[5], $api->params[6], $api->params[7]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -272,9 +269,9 @@ if(!$api->error) {
                                             // INSTAGRAM Subscribers
                                             if ("instagram" === $api->params[0]) {
                                                 try {
-                                                    $value = json_decode($sc->exportSubscribers($api->params[0],
+                                                    $value = $sc->exportSubscribers($api->params[0],
                                                         $api->params[1], $api->params[2], 0,
-                                                        $api->params[5], $api->params[6]));
+                                                        $api->params[5], $api->params[6]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
@@ -282,9 +279,9 @@ if(!$api->error) {
                                             // PINTEREST Subscribers
                                             } else {
                                                 try {
-                                                    $value = json_decode($sc->exportSubscribers($api->params[0],
+                                                    $value = $sc->exportSubscribers($api->params[0],
                                                         $api->params[1], $api->params[2], $api->params[5],
-                                                        $api->params[6], $api->params[7]));
+                                                        $api->params[6], $api->params[7]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
@@ -294,18 +291,18 @@ if(!$api->error) {
                                             switch($api->params[5]) {
                                                 case "board":
                                                     try {
-                                                        $value = json_decode($sc->exportFollowingBoards($api->params[0],
+                                                        $value = $sc->exportFollowingBoards($api->params[0],
                                                             $api->params[1], $api->params[2],
-                                                            $api->params[6], $api->params[7], $api->params[8]));
+                                                            $api->params[6], $api->params[7], $api->params[8]);
                                                     } catch (\Exception $e) {
                                                         $api->setError($e->getMessage());
                                                     }
                                                     break;
                                                 case "interest":
                                                     try {
-                                                        $value = json_decode($sc->exportFollowingInterests($api->params[0],
+                                                        $value = $sc->exportFollowingInterests($api->params[0],
                                                             $api->params[1], $api->params[2],
-                                                            $api->params[6], $api->params[7], $api->params[8]));
+                                                            $api->params[6], $api->params[7], $api->params[8]);
                                                     } catch (\Exception $e) {
                                                         $api->setError($e->getMessage());
                                                     }
@@ -317,18 +314,18 @@ if(!$api->error) {
                                             // GOOGLE People who like, share or were shared an activity/post
                                             if ("people" === $api->params[6]) {
                                                 try {
-                                                    $value = json_decode($sc->exportPeopleInPost($api->params[0],
+                                                    $value = $sc->exportPeopleInPost($api->params[0],
                                                         $api->params[1], $api->params[2],
-                                                        $api->params[5]));
+                                                        $api->params[5]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
                                             // Export posts from GOOGLE+
                                             } else {
                                                 try {
-                                                    $value = json_decode($sc->exportPosts($api->params[0],
+                                                    $value = $sc->exportPosts($api->params[0],
                                                         $api->params[1], $api->params[2],
-                                                        $api->params[5], $api->params[6], $api->params[7]));
+                                                        $api->params[5], $api->params[6], $api->params[7]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
@@ -338,18 +335,18 @@ if(!$api->error) {
                                             // Export media recently liked in INSTAGRAM
                                             if ("liked" === $api->params[5]) {
                                                 try {
-                                                    $value = json_decode($sc->exportMediaRecentlyLiked($api->params[0],
+                                                    $value = $sc->exportMediaRecentlyLiked($api->params[0],
                                                         $api->params[1], $api->params[2], $api->params[6],
-                                                        $api->params[7], $api->params[8]));
+                                                        $api->params[7], $api->params[8]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
                                             // Export images from GOOGLE drive, INSTAGRAM, FACEBOOK
                                             } else {
                                                 try {
-                                                    $value = json_decode($sc->exportMedia($api->params[0],
+                                                    $value = $sc->exportMedia($api->params[0],
                                                         $api->params[1], $api->params[2],
-                                                        $api->params[5], $api->params[6], $api->params[7]));
+                                                        $api->params[5], $api->params[6], $api->params[7]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
@@ -359,18 +356,18 @@ if(!$api->error) {
                                             // Export photos in an album FACEBOOK
                                             if ("media" === $api->params[6]) {
                                                 try {
-                                                    $value = json_decode($sc->exportPhotosFromAlbum($api->params[0],
+                                                    $value = $sc->exportPhotosFromAlbum($api->params[0],
                                                         $api->params[1], $api->params[2],
-                                                        $api->params[5], $api->params[7], $api->params[8], $api->params[9]));
+                                                        $api->params[5], $api->params[7], $api->params[8], $api->params[9]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
                                             // Export albums in FACEBOOK
                                             } else {
                                                 try {
-                                                    $value = json_decode($sc->exportPhotosAlbumsList($api->params[0],
+                                                    $value = $sc->exportPhotosAlbumsList($api->params[0],
                                                         $api->params[1], $api->params[2],
-                                                        $api->params[5], $api->params[6], $api->params[7]));
+                                                        $api->params[5], $api->params[6], $api->params[7]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
@@ -379,9 +376,9 @@ if(!$api->error) {
                                         // Export user's pages in FACEBOOK
                                         case "page":
                                             try {
-                                                $value = json_decode($sc->exportPages($api->params[0],
+                                                $value = $sc->exportPages($api->params[0],
                                                     $api->params[1], $api->params[2],
-                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                                    $api->params[5], $api->params[6], $api->params[7]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -389,9 +386,9 @@ if(!$api->error) {
                                         // Export user's pins in PINTEREST
                                         case "pin":
                                             try {
-                                                $value = json_decode($sc->exportPins($api->params[0],
+                                                $value = $sc->exportPins($api->params[0],
                                                     $api->params[1], $api->params[2], null,
-                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                                    $api->params[5], $api->params[6], $api->params[7]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -399,9 +396,9 @@ if(!$api->error) {
                                         // Export pins liked by the user in PINTEREST
                                         case "like":
                                             try {
-                                                $value = json_decode($sc->exportPinsLiked($api->params[0],
+                                                $value = $sc->exportPinsLiked($api->params[0],
                                                     $api->params[1], $api->params[2], null,
-                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                                    $api->params[5], $api->params[6], $api->params[7]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -409,9 +406,9 @@ if(!$api->error) {
                                         // Export user's boards in PINTEREST
                                         case "board":
                                             try {
-                                                $value = json_decode($sc->exportBoards($api->params[0],
+                                                $value = $sc->exportBoards($api->params[0],
                                                     $api->params[1], $api->params[2], null,
-                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                                    $api->params[5], $api->params[6], $api->params[7]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -421,8 +418,8 @@ if(!$api->error) {
                                 // INSTAGRAM Relationships end points
                                 case "relationship":
                                     try {
-                                        $value = json_decode($sc->getUserRelationship($api->params[0],
-                                            $api->params[1], $api->params[2], $api->params[5]));
+                                        $value = $sc->getUserRelationship($api->params[0],
+                                            $api->params[1], $api->params[2], $api->params[5]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -432,8 +429,8 @@ if(!$api->error) {
                                         // INSTAGRAM / PINTEREST user searching
                                         case "user":
                                             try {
-                                                $value = json_decode($sc->searchUsers($api->params[0], $api->params[1], $api->params[2],
-                                                    $api->params[5], $api->params[6], $api->params[7], $api->params[8]));
+                                                $value = $sc->searchUsers($api->params[0], $api->params[1], $api->params[2],
+                                                    $api->params[5], $api->params[6], $api->params[7], $api->params[8]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -441,9 +438,9 @@ if(!$api->error) {
                                         // PINTEREST pins searching
                                         case "pin":
                                             try {
-                                                $value = json_decode($sc->exportPins($api->params[0],
+                                                $value = $sc->exportPins($api->params[0],
                                                     $api->params[1], $api->params[2], $api->params[5],
-                                                    $api->params[6], $api->params[7], $api->params[8]));
+                                                    $api->params[6], $api->params[7], $api->params[8]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -451,9 +448,9 @@ if(!$api->error) {
                                         // PINTEREST boards searching
                                         case "board":
                                             try {
-                                                $value = json_decode($sc->exportBoards($api->params[0],
+                                                $value = $sc->exportBoards($api->params[0],
                                                     $api->params[1], $api->params[2], $api->params[5],
-                                                    $api->params[6], $api->params[7], $api->params[8]));
+                                                    $api->params[6], $api->params[7], $api->params[8]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -467,7 +464,7 @@ if(!$api->error) {
                                 // FACEBOOK Page Info
                                 case "info":
                                     try {
-                                        $value = json_decode($sc->getPage($api->params[0], $api->params[1], $api->params[2]));
+                                        $value = $sc->getPage($api->params[0], $api->params[1], $api->params[2]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -477,9 +474,9 @@ if(!$api->error) {
                                         // Export page's media from FACEBOOK
                                         case "media":
                                             try {
-                                                $value = json_decode($sc->exportMedia($api->params[0],
+                                                $value = $sc->exportMedia($api->params[0],
                                                     $api->params[1], $api->params[2],
-                                                    $api->params[5], $api->params[6], $api->params[7]));
+                                                    $api->params[5], $api->params[6], $api->params[7]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
@@ -488,18 +485,18 @@ if(!$api->error) {
                                             // Export media from a page's album in FACEBOOK
                                             if ("media" === $api->params[6]) {
                                                 try {
-                                                    $value = json_decode($sc->exportPhotosFromAlbum($api->params[0],
+                                                    $value = $sc->exportPhotosFromAlbum($api->params[0],
                                                         $api->params[1], $api->params[2], $api->params[5],
-                                                        $api->params[7], $api->params[8], $api->params[9]));
+                                                        $api->params[7], $api->params[8], $api->params[9]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
                                             } else {
                                                 // Export page's albums from FACEBOOK
                                                 try {
-                                                    $value = json_decode($sc->exportPhotosAlbumsList($api->params[0],
+                                                    $value = $sc->exportPhotosAlbumsList($api->params[0],
                                                         $api->params[1], $api->params[2],
-                                                        $api->params[5], $api->params[6], $api->params[7]));
+                                                        $api->params[5], $api->params[6], $api->params[7]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
@@ -515,8 +512,8 @@ if(!$api->error) {
                                 // PINTEREST Board Info
                                 case "info":
                                     try {
-                                        $value = json_decode($sc->getBoard($api->params[0], $api->params[1],
-                                                                $api->params[2], $api->params[3]));
+                                        $value = $sc->getBoard($api->params[0], $api->params[1],
+                                                                $api->params[2], $api->params[3]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -524,8 +521,8 @@ if(!$api->error) {
                                 // PINTEREST Delete Board
                                 case "delete":
                                     try {
-                                        $value = json_decode($sc->deleteBoard($api->params[0], $api->params[1],
-                                            $api->params[2], $api->params[3]));
+                                        $value = $sc->deleteBoard($api->params[0], $api->params[1],
+                                            $api->params[2], $api->params[3]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -533,9 +530,9 @@ if(!$api->error) {
                                 // PINTEREST Export Pins from a Board
                                 case "export":
                                     try {
-                                        $value = json_decode($sc->exportPinsFromBoard($api->params[0], $api->params[1],
+                                        $value = $sc->exportPinsFromBoard($api->params[0], $api->params[1],
                                             $api->params[2], $api->params[3],
-                                            $api->params[6], $api->params[7],$api->params[8]));
+                                            $api->params[6], $api->params[7],$api->params[8]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -548,7 +545,7 @@ if(!$api->error) {
                                 // PINTEREST Pin Info
                                 case "info":
                                     try {
-                                        $value = json_decode($sc->getPin($api->params[0], $api->params[1], $api->params[2]));
+                                        $value = $sc->getPin($api->params[0], $api->params[1], $api->params[2]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -556,7 +553,7 @@ if(!$api->error) {
                                 // PINTEREST Delete Pin
                                 case "delete":
                                     try {
-                                        $value = json_decode($sc->deletePin($api->params[0], $api->params[1], $api->params[2]));
+                                        $value = $sc->deletePin($api->params[0], $api->params[1], $api->params[2]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -584,9 +581,9 @@ if(!$api->error) {
                                 // Create photo album in FACEBOOK for an user
                                 case "album":
                                     try {
-                                        $value = json_decode($sc->createPhotosAlbum($api->params[0],
+                                        $value = $sc->createPhotosAlbum($api->params[0],
                                             $api->params[1], $api->params[2],
-                                            $api->formParams["title"], $api->formParams["caption"]));
+                                            $api->formParams["title"], $api->formParams["caption"]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -622,9 +619,9 @@ if(!$api->error) {
                                         }
                                     }
                                     try {
-                                        $value = json_decode($sc->post($api->params[0],
+                                        $value = $sc->post($api->params[0],
                                             $api->params[1], $api->params[2],
-                                            $params));
+                                            $params);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -633,19 +630,19 @@ if(!$api->error) {
                                     // Create a pin in PINTEREST
                                     if ("pin" === $api->params[7]) {
                                         try {
-                                            $value = json_decode($sc->createPin($api->params[0],
+                                            $value = $sc->createPin($api->params[0],
                                                 $api->params[1], $api->params[2], $api->params[5], $api->params[6],
                                                 $api->formParams["note"], $api->formParams["link"],
-                                                $api->formParams["image_type"],$api->formParams["image"]));
+                                                $api->formParams["image_type"],$api->formParams["image"]);
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
                                     // Create a board in PINTEREST
                                     } else {
                                         try {
-                                            $value = json_decode($sc->createBoard($api->params[0],
+                                            $value = $sc->createBoard($api->params[0],
                                                 $api->params[1], $api->params[2],
-                                                $api->formParams["name"], $api->formParams["description"]));
+                                                $api->formParams["name"], $api->formParams["description"]);
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
@@ -666,8 +663,8 @@ if(!$api->error) {
                                         if (isset($api->formParams["title"])) {
                                             $parameters["title"] = $api->formParams["title"];
                                         }
-                                        $value = json_decode($sc->importMedia($api->params[0],
-                                            $api->params[1], $api->params[2], $parameters));
+                                        $value = $sc->importMedia($api->params[0],
+                                            $api->params[1], $api->params[2], $parameters);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -682,8 +679,8 @@ if(!$api->error) {
                                             $parameters["title"] = $api->formParams["title"];
                                         }
                                         $parameters["album_id"] = $api->params[5];
-                                        $value = json_decode($sc->importMedia($api->params[0],
-                                            $api->params[1], $api->params[2], $parameters));
+                                        $value = $sc->importMedia($api->params[0],
+                                            $api->params[1], $api->params[2], $parameters);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -694,17 +691,17 @@ if(!$api->error) {
                         case "relationship":
                             if ("user" === $api->params[4]) {
                                 try {
-                                    $value = json_decode($sc->modifyUserRelationship($api->params[0],
+                                    $value = $sc->modifyUserRelationship($api->params[0],
                                         $api->params[1], $api->params[2],
-                                        $api->params[5], $api->formParams["action"]));
+                                        $api->params[5], $api->formParams["action"]);
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
                             } else if ("board" === $api->params[4]) {
                                 try {
-                                    $value = json_decode($sc->modifyBoardRelationship($api->params[0],
+                                    $value = $sc->modifyBoardRelationship($api->params[0],
                                         $api->params[1], $api->params[2],
-                                        $api->params[5], $api->formParams["action"]));
+                                        $api->params[5], $api->formParams["action"]);
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -720,9 +717,9 @@ if(!$api->error) {
                                 // Create photo album in a FACEBOOK page
                                 case "album":
                                     try {
-                                        $value = json_decode($sc->createPhotosAlbum($api->params[0],
+                                        $value = $sc->createPhotosAlbum($api->params[0],
                                             $api->params[1], $api->params[2],
-                                            $api->formParams["title"], $api->formParams["caption"]));
+                                            $api->formParams["title"], $api->formParams["caption"]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -738,9 +735,9 @@ if(!$api->error) {
                                     }
 
                                     try {
-                                        $value = json_decode($sc->post($api->params[0],
+                                        $value = $sc->post($api->params[0],
                                             $api->params[1], $api->params[2],
-                                            $params));
+                                            $params);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -758,8 +755,8 @@ if(!$api->error) {
                                         if (isset($api->formParams["title"])) {
                                             $parameters["title"] = $api->formParams["title"];
                                         }
-                                        $value = json_decode($sc->importMedia($api->params[0],
-                                            $api->params[1], $api->params[2], $parameters));
+                                        $value = $sc->importMedia($api->params[0],
+                                            $api->params[1], $api->params[2], $parameters);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -774,8 +771,8 @@ if(!$api->error) {
                                             $parameters["title"] = $api->formParams["title"];
                                         }
                                         $parameters["album_id"] = $api->params[5];
-                                        $value = json_decode($sc->importMedia($api->params[0],
-                                            $api->params[1], $api->params[2], $parameters));
+                                        $value = $sc->importMedia($api->params[0],
+                                            $api->params[1], $api->params[2], $parameters);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -792,9 +789,9 @@ if(!$api->error) {
                         // PINTEREST Board edition
                         case "edit":
                             try {
-                                $value = json_decode($sc->editBoard($api->params[0], $api->params[1],
+                                $value = $sc->editBoard($api->params[0], $api->params[1],
                                     $api->params[2], $api->params[3],
-                                    $api->formParams["name"], $api->formParams["description"]));
+                                    $api->formParams["name"], $api->formParams["description"]);
                             } catch (\Exception $e) {
                                 $api->setError($e->getMessage());
                             }
@@ -807,9 +804,9 @@ if(!$api->error) {
                         // PINTEREST Pin edition
                         case "edit":
                             try {
-                                $value = json_decode($sc->editPin($api->params[0], $api->params[1],
+                                $value = $sc->editPin($api->params[0], $api->params[1],
                                     $api->params[2], $api->formParams["board"], $api->formParams["note"],
-                                    $api->formParams["link"]));
+                                    $api->formParams["link"]);
                             } catch (\Exception $e) {
                                 $api->setError($e->getMessage());
                             }
