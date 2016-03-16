@@ -228,6 +228,15 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                // Get TWITTER user home timeline
+                                case "timeline":
+                                    try {
+                                        $value = $sc->getTimeline($api->params[0],
+                                            $api->params[1], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
                                 // SOCIAL NETWORKS EXPORT end points
                                 case "export":
                                     switch ($api->params[4]) {
@@ -590,6 +599,7 @@ if(!$api->error) {
                                     break;
                                 // Create a post in FACEBOOK, GOOGLE +
                                 // Create a comment in an INSTAGRAM media
+                                // Create a tweet in TWITTER
                                 case "post":
                                     $params = array();
                                     if ("google" === $api->params[0]) {
@@ -616,6 +626,14 @@ if(!$api->error) {
                                         }
                                         if (isset($api->formParams["object_attachment"])) {
                                             $params["object_attachment"] = $api->formParams["object_attachment"];
+                                        }
+                                    } else if ("twitter" === $api->params[0]) {
+                                        $params["status"] = $api->formParams["status"];
+                                        if (isset($api->formParams["in_reply_to_status_id"])) {
+                                            $params["in_reply_to_status_id"] = $api->formParams["in_reply_to_status_id"];
+                                        }
+                                        if (isset($api->formParams["media_ids"])) {
+                                            $params["media_ids"] = $api->formParams["media_ids"];
                                         }
                                     }
                                     try {
