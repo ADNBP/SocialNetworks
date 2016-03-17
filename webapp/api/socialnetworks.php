@@ -275,7 +275,8 @@ if(!$api->error) {
                                             }
                                             break;
                                         case "subscriber":
-                                            // INSTAGRAM Subscribers
+                                        case "friend":
+                                            // INSTAGRAM Subscribers / TWITTER friends
                                             if ("instagram" === $api->params[0]) {
                                                 try {
                                                     $value = $sc->exportSubscribers($api->params[0],
@@ -511,6 +512,29 @@ if(!$api->error) {
                                                 }
                                             }
                                             break;
+                                    }
+                                    break;
+                            }
+                            break;
+                        // GET TWITTER tweets endpoints
+                        case "tweet":
+                            switch($api->params[3]) {
+                                // TWITTER Tweet Info
+                                case "info":
+                                    try {
+                                        $value = $sc->getTweet($api->params[0], $api->params[1],
+                                            $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // TWITTER Tweet deletion
+                                case "delete":
+                                    try {
+                                        $value = $sc->deleteTweet($api->params[0], $api->params[1],
+                                            $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
                                     }
                                     break;
                             }
