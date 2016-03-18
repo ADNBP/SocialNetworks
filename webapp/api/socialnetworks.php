@@ -146,9 +146,9 @@ if(!$api->error) {
                                         "refresh_token" => $credentials[$api->params[0]]["refresh_token"],
                                         "id_token" => $credentials[$api->params[0]]["id_token"]
                                     ));
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["expires_in"] = $profile["expires_in"];
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["user_id"];
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
-                                    $value["expires_in"] = $profile["expires_in"];
-                                    $value["user_id"] = $profile["user_id"];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -157,6 +157,7 @@ if(!$api->error) {
                                     $profile = $sc->checkCredentials($api->params[0], array(
                                         "access_token" => $credentials[$api->params[0]]["access_token"]
                                     ));
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["user_id"];
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
@@ -166,8 +167,8 @@ if(!$api->error) {
                                     $profile = $sc->checkCredentials($api->params[0], array(
                                         "access_token" => $credentials[$api->params[0]]["access_token"]
                                     ));
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["user_id"];
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
-                                    $value["user_id"] = $profile["user_id"];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -176,9 +177,9 @@ if(!$api->error) {
                                     $profile = $sc->checkCredentials($api->params[0], array(
                                         "access_token" => $credentials[$api->params[0]]["access_token"]
                                     ));
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["user_id"];
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_name"] = $profile["raw"]["username"];
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
-                                    $value["user_id"] = $profile["id"];
-                                    $value["user_name"] = $profile["username"];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -188,8 +189,8 @@ if(!$api->error) {
                                         "access_token" => $credentials[$api->params[0]]["access_token"],
                                         "access_token_secret" => $credentials[$api->params[0]]["access_token_secret"],
                                     ));
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["user_id"];
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
-                                    $value["user_id"] = $profile["id"];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -216,18 +217,18 @@ if(!$api->error) {
                                 $api->setError($e->getMessage());
                             }
                             break;
+                        // Get SOCIAL NETWORK user profile
+                        case "profile":
+                            try {
+                                $value = $sc->getProfile($api->params[0],
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"]);
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
+                            break;
                         // SOCIAL NETWORKS USER END POINTS
                         case "user":
                             switch($api->params[3]) {
-                                // Get SOCIAL NETWORK user profile
-                                case "profile":
-                                    try {
-                                        $value = $sc->getProfile($api->params[0],
-                                            $api->params[1], $api->params[2]);
-                                    } catch (\Exception $e) {
-                                        $api->setError($e->getMessage());
-                                    }
-                                    break;
                                 // Get TWITTER user home timeline
                                 case "timeline":
                                     try {
