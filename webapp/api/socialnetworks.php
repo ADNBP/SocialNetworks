@@ -228,6 +228,191 @@ if(!$api->error) {
                             break;
                         // SOCIAL NETWORKS USER END POINTS
                         case "user":
+                            switch($api->params[2]) {
+                                case "export":
+                                    switch($api->params[3]) {
+                                        // GOOGLE Circles end points
+                                        case "circle":
+                                            // People in an user circle
+                                            if ("people" === $api->params[5]) {
+                                                try {
+                                                    $value = $sc->exportUserPeopleInCircle($api->params[0],
+                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                        $api->params[4], $api->params[6], $api->params[7], $api->params[8]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            // Export circles from GOOGLE+
+                                            } else {
+                                                try {
+                                                    $value = $sc->exportUserCircles($api->params[0],
+                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                        $api->params[4], $api->params[5], $api->params[6]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            }
+                                            break;
+                                        // SOCIAL NETWORKS People end points
+                                        case "people":
+                                            // People in Google + circles
+                                            try {
+                                                $value = $sc->exportUserPeopleInAllCircles($api->params[0],
+                                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                    $api->params[4], $api->params[5], $api->params[6]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        case "follower":
+                                            // INSTAGRAM Followers
+                                            try {
+                                                $value = $sc->exportFollowers($api->params[0],
+                                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                    $api->params[4], $api->params[5]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        case "subscriber":
+                                            // INSTAGRAM Subscribers
+                                            try {
+                                                $value = $sc->exportSubscribers($api->params[0],
+                                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                    $api->params[4], $api->params[5]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        case "media":
+                                            // Export media recently liked in INSTAGRAM
+                                            if ("liked" === $api->params[4]) {
+                                                try {
+                                                    $value = $sc->exportUserMediaRecentlyLiked($api->params[0],
+                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                        $api->params[5], $api->params[6], $api->params[7]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            // Export media from GOOGLE drive, INSTAGRAM
+                                            } else {
+                                                try {
+                                                    $value = $sc->exportUserMedia($api->params[0],
+                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                        $api->params[4], $api->params[5], $api->params[6]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            }
+                                            break;
+                                        case "photo":
+                                            // Export user photos from FACEBOOK
+                                            try {
+                                                $value = $sc->exportUserPhotos($api->params[0],
+                                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                    $api->params[4], $api->params[5], $api->params[6]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        // GOOGLE Posts/Activities end points
+                                        case "post":
+                                            // GOOGLE People who like, share or were shared an activity/post
+                                            if ("people" === $api->params[5]) {
+                                                try {
+                                                    $value = $sc->exportUserPeopleInPost($api->params[0],
+                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                        $api->params[4]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                                // Export posts from GOOGLE+
+                                            } else {
+                                                try {
+                                                    $value = $sc->exportUserPosts($api->params[0],
+                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                        $api->params[4], $api->params[5], $api->params[6]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            }
+                                            break;
+                                        case "album":
+                                            // Export photos inside an album FACEBOOK
+                                            if ("photo" === $api->params[5]) {
+                                                try {
+                                                    $value = $sc->exportPhotosFromAlbum($api->params[0],
+                                                        $api->params[4], $api->params[6], $api->params[7], $api->params[8]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            // Export albums for a FACEBOOK user
+                                            } else {
+                                                try {
+                                                    $value = $sc->exportPhotosUserAlbumsList($api->params[0],
+                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                        $api->params[4], $api->params[5], $api->params[6]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            }
+                                            break;
+                                        // Export user's pages in FACEBOOK
+                                        case "page":
+                                            try {
+                                                $value = $sc->exportUserPages($api->params[0],
+                                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                    $api->params[4], $api->params[5], $api->params[6]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                    }
+                                    break;
+                                // INSTAGRAM Relationships end points
+                                case "relationship":
+                                    try {
+                                        $value = $sc->getUserRelationship($api->params[0],
+                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"], $api->params[4]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case "search":
+                                    switch($api->params[3]) {
+                                        // INSTAGRAM / PINTEREST user searching
+                                        case "user":
+                                            try {
+                                                $value = $sc->searchUsers($api->params[0],
+                                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                    $api->params[4], $api->params[5], $api->params[6], $api->params[7]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        // PINTEREST pins searching
+                                        case "pin":
+                                            try {
+                                                $value = $sc->exportPins($api->params[0],
+                                                    $api->params[1], $api->params[2], $api->params[5],
+                                                    $api->params[6], $api->params[7], $api->params[8]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        // PINTEREST boards searching
+                                        case "board":
+                                            try {
+                                                $value = $sc->exportBoards($api->params[0],
+                                                    $api->params[1], $api->params[2], $api->params[5],
+                                                    $api->params[6], $api->params[7], $api->params[8]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                    }
+                            }
+
                             switch($api->params[3]) {
                                 // Get TWITTER user home timeline
                                 case "timeline":
@@ -241,40 +426,6 @@ if(!$api->error) {
                                 // SOCIAL NETWORKS EXPORT end points
                                 case "export":
                                     switch ($api->params[4]) {
-                                        // GOOGLE Circles end points
-                                        case "circle":
-                                            // People in a circle
-                                            if ("people" === $api->params[6]) {
-                                                try {
-                                                    $value = $sc->exportPeopleInCircle($api->params[0],
-                                                        $api->params[1], $api->params[2], $api->params[5],
-                                                        $api->params[7], $api->params[8], $api->params[9]);
-                                                } catch (\Exception $e) {
-                                                    $api->setError($e->getMessage());
-                                                }
-                                            // Export circles from GOOGLE+
-                                            } else {
-                                                try {
-                                                    $value = $sc->exportCircles($api->params[0],
-                                                        $api->params[1], $api->params[2],
-                                                        $api->params[5], $api->params[6], $api->params[7]);
-                                                } catch (\Exception $e) {
-                                                    $api->setError($e->getMessage());
-                                                }
-                                            }
-                                            break;
-                                        // SOCIAL NETWORKS People end points
-                                        case "people":
-                                        case "follower":
-                                            // People in Google circles / INSTAGRAM Followers
-                                            try {
-                                                $value = $sc->exportFollowers($api->params[0],
-                                                    $api->params[1], $api->params[2],
-                                                    $api->params[5], $api->params[6], $api->params[7]);
-                                            } catch (\Exception $e) {
-                                                $api->setError($e->getMessage());
-                                            }
-                                            break;
                                         case "subscriber":
                                         case "friend":
                                             // INSTAGRAM Subscribers / TWITTER friends
@@ -475,38 +626,37 @@ if(!$api->error) {
                                 // FACEBOOK Page Info
                                 case "info":
                                     try {
-                                        $value = $sc->getPage($api->params[0], $api->params[1], $api->params[2]);
+                                        $value = $sc->getPage($api->params[0], $api->params[2]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
                                 case "export":
                                     switch ($api->params[4]) {
-                                        // Export page's media from FACEBOOK
-                                        case "media":
+                                        // Export page's photos from FACEBOOK
+                                        case "photo":
                                             try {
-                                                $value = $sc->exportMedia($api->params[0],
-                                                    $api->params[1], $api->params[2],
+                                                $value = $sc->exportPagePhotos($api->params[0],
+                                                    $api->params[2],
                                                     $api->params[5], $api->params[6], $api->params[7]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
                                             break;
                                         case "album":
-                                            // Export media from a page's album in FACEBOOK
-                                            if ("media" === $api->params[6]) {
+                                            // Export photos from a page's album in FACEBOOK
+                                            if ("photo" === $api->params[6]) {
                                                 try {
                                                     $value = $sc->exportPhotosFromAlbum($api->params[0],
-                                                        $api->params[1], $api->params[2], $api->params[5],
-                                                        $api->params[7], $api->params[8], $api->params[9]);
+                                                        $api->params[5], $api->params[7], $api->params[8], $api->params[9]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
                                             } else {
                                                 // Export page's albums from FACEBOOK
                                                 try {
-                                                    $value = $sc->exportPhotosAlbumsList($api->params[0],
-                                                        $api->params[1], $api->params[2],
+                                                    $value = $sc->exportPhotosPageAlbumsList($api->params[0],
+                                                         $api->params[2],
                                                         $api->params[5], $api->params[6], $api->params[7]);
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
@@ -609,7 +759,143 @@ if(!$api->error) {
                 // The rest of social networks.
                 // POST USER endpoints
                 case "user":
-                    switch ($api->params[3]) {
+                    switch($api->params[2]) {
+                        // USER Import endpoints
+                        case "import":
+                            break;
+                        // USER Upload endpoints
+                        case "upload":
+                            switch($api->params[3]) {
+                                // Upload media (video/image) to GOOGLE+
+                                case "media":
+                                    try {
+                                        $parameters = array();
+                                        $parameters["media_type"] = $api->formParams["media_type"];
+                                        $parameters["value"] = $api->formParams["value"];
+                                        if (isset($api->formParams["title"])) {
+                                            $parameters["title"] = $api->formParams["title"];
+                                        }
+                                        $value = $sc->uploadUserMedia($api->params[0],
+                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"], $parameters);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // Upload photo to facebook user's album
+                                case "photo":
+                                    try {
+                                        $parameters = array();
+                                        $parameters["media_type"] = $api->formParams["media_type"];
+                                        $parameters["value"] = $api->formParams["value"];
+                                        if (isset($api->formParams["title"])) {
+                                            $parameters["title"] = $api->formParams["title"];
+                                        }
+                                        $value = $sc->uploadUserPhoto($api->params[0],
+                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"], $parameters);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // Upload photo to FACEBOOK user's album
+                                case "album":
+                                    try {
+                                        $parameters = array();
+                                        $parameters["media_type"] = $api->formParams["media_type"];
+                                        $parameters["value"] = $api->formParams["value"];
+                                        if (isset($api->formParams["title"])) {
+                                            $parameters["title"] = $api->formParams["title"];
+                                        }
+                                        $parameters["album_id"] = $api->params[4];
+                                        $value = $sc->uploadUserPhoto($api->params[0],
+                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"], $parameters);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                        case "create":
+                            switch ($api->params[3]) {
+                                // Create a post in GOOGLE +
+                                case "post":
+                                    $params = array();
+                                    if ("google" === $api->params[0]) {
+                                        $params["user_id"] = $api->params[2];
+                                        $params["content"] = $api->formParams["content"];
+                                        $params["access_type"] = $api->formParams["access_type"];
+                                        if (isset($api->formParams["attachment"])) {
+                                            $params["attachment"] = $api->formParams["attachment"];
+                                        }
+                                        if (isset($api->formParams["circle_id"])) {
+                                            $params["circle_id"] = $api->formParams["circle_id"];
+                                        }
+                                        if (isset($api->formParams["person_id"])) {
+                                            $params["person_id"] = $api->formParams["person_id"];
+                                        }
+                                        // Send a comment on a media in INSTAGRAM
+                                    } else if ("instagram" === $api->params[0]) {
+                                        $params["content"] = $api->formParams["content"];
+                                        $params["media_id"] = $api->formParams["media_id"];
+                                    } else if ("facebook" === $api->params[0]) {
+                                        $params["message"] = $api->formParams["message"];
+                                        if (isset($api->formParams["link"])) {
+                                            $params["link"] = $api->formParams["link"];
+                                        }
+                                        if (isset($api->formParams["object_attachment"])) {
+                                            $params["object_attachment"] = $api->formParams["object_attachment"];
+                                        }
+                                    } else if ("twitter" === $api->params[0]) {
+                                        $params["status"] = $api->formParams["status"];
+                                        if (isset($api->formParams["in_reply_to_status_id"])) {
+                                            $params["in_reply_to_status_id"] = $api->formParams["in_reply_to_status_id"];
+                                        }
+                                        if (isset($api->formParams["media_ids"])) {
+                                            $params["media_ids"] = $api->formParams["media_ids"];
+                                        }
+                                    }
+                                    try {
+                                        $value = $sc->post($api->params[0],
+                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                            $params);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // Create photo album in FACEBOOK for an user
+                                case "album":
+                                    try {
+                                        $value = $sc->createUserPhotosAlbum($api->params[0],
+                                            $api->params[1], $api->params[2],
+                                            $api->formParams["title"], $api->formParams["caption"]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                        // Modify INSTAGRAM/PINTEREST user relationship
+                        case "relationship":
+                            if ("user" === $api->params[3]) {
+                                try {
+                                    $value = $sc->modifyUserRelationship($api->params[0],
+                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                        $api->params[4], $api->formParams["action"]);
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            } else if ("board" === $api->params[3]) {
+                                try {
+                                    $value = $sc->modifyBoardRelationship($api->params[0],
+                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                        $api->params[4], $api->formParams["action"]);
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            }
+                            break;
+                    }
+
+                    switch($api->params[3]) {
                         case "create":
                             switch ($api->params[4]) {
                                 // Create photo album in FACEBOOK for an user
@@ -696,7 +982,6 @@ if(!$api->error) {
                         // USER IMPORT endpoints
                         case "import":
                             switch ($api->params[4]) {
-                                // Import media (video/image) to GOOGLE+
                                 // Import photo to FACEBOOK (user)
                                 case "media":
                                     try {
@@ -760,8 +1045,7 @@ if(!$api->error) {
                                 // Create photo album in a FACEBOOK page
                                 case "album":
                                     try {
-                                        $value = $sc->createPhotosAlbum($api->params[0],
-                                            $api->params[1], $api->params[2],
+                                        $value = $sc->createPagePhotosAlbum($api->params[0], $api->params[2],
                                             $api->formParams["title"], $api->formParams["caption"]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
@@ -778,19 +1062,17 @@ if(!$api->error) {
                                     }
 
                                     try {
-                                        $value = $sc->post($api->params[0],
-                                            $api->params[1], $api->params[2],
-                                            $params);
+                                        $value = $sc->pagePost($api->params[0], $api->params[2], $params);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
                             }
                             break;
-                        case "import":
+                        case "upload":
                             switch ($api->params[4]) {
                                 // Import photo to FACEBOOK page
-                                case "media":
+                                case "photo":
                                     try {
                                         $parameters = array();
                                         $parameters["media_type"] = $api->formParams["media_type"];
@@ -798,8 +1080,8 @@ if(!$api->error) {
                                         if (isset($api->formParams["title"])) {
                                             $parameters["title"] = $api->formParams["title"];
                                         }
-                                        $value = $sc->importMedia($api->params[0],
-                                            $api->params[1], $api->params[2], $parameters);
+                                        $value = $sc->uploadPagePhoto($api->params[0],
+                                            $api->params[2], $parameters);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -814,16 +1096,14 @@ if(!$api->error) {
                                             $parameters["title"] = $api->formParams["title"];
                                         }
                                         $parameters["album_id"] = $api->params[5];
-                                        $value = $sc->importMedia($api->params[0],
-                                            $api->params[1], $api->params[2], $parameters);
+                                        $value = $sc->uploadPagePhoto($api->params[0],
+                                            $api->params[2], $parameters);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
                             }
                             break;
-
-
                     }
                     break;
                 // POST Boards endpoints
