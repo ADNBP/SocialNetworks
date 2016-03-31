@@ -277,7 +277,7 @@ if(!$api->error) {
                                             // INSTAGRAM Followers
                                             if ("instagram" === $api->params[0]) {
                                                 try {
-                                                    $value = $sc->exportFollowers($api->params[0],
+                                                    $value = $sc->exportUserFollowers($api->params[0],
                                                         $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
                                                         0, $api->params[4], $api->params[5]);
                                                 } catch (\Exception $e) {
@@ -286,7 +286,7 @@ if(!$api->error) {
                                             // PINTEREST / TWITTER Followers
                                             } else {
                                                 try {
-                                                    $value = $sc->exportFollowers($api->params[0],
+                                                    $value = $sc->exportUserFollowers($api->params[0],
                                                         $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
                                                         $api->params[4], $api->params[5], $api->params[6]);
                                                 } catch (\Exception $e) {
@@ -299,7 +299,7 @@ if(!$api->error) {
                                             // INSTAGRAM Subscribers
                                             if ("instagram" === $api->params[0]) {
                                                 try {
-                                                    $value = $sc->exportSubscribers($api->params[0],
+                                                    $value = $sc->exportUserSubscribers($api->params[0],
                                                         $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
                                                         0, $api->params[4], $api->params[5]);
                                                 } catch (\Exception $e) {
@@ -308,7 +308,7 @@ if(!$api->error) {
                                             // PINTEREST Subscribers / TWITTER friends
                                             } else {
                                                 try {
-                                                    $value = $sc->exportSubscribers($api->params[0],
+                                                    $value = $sc->exportUserSubscribers($api->params[0],
                                                         $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
                                                         $api->params[4], $api->params[5], $api->params[6]);
                                                 } catch (\Exception $e) {
