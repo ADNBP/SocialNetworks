@@ -35,12 +35,13 @@ if(!$api->error) {
                 ,"active"=>$this->getConf("TwitterOauth")
                 ,"client_id"=>(strlen($this->getConf("TwitterOauth_CLIENT_ID")))?$this->getConf("TwitterOauth_CLIENT_ID"):null
                 ,"client_secret"=>(strlen($this->getConf("TwitterOauth_CLIENT_SECRET")))?$this->getConf("TwitterOauth_CLIENT_SECRET"):null
-                ,"client_scope"=>(is_array($this->getConf("TwitterOauth_SCOPE"))) /*&& (count($this->getConf("TwitterOauth_SCOPE")) > 0)*/?$this->getConf("TwitterOauth_SCOPE"):null
+                ,"client_scope"=>(is_array($this->getConf("TwitterOauth_SCOPE")))?$this->getConf("TwitterOauth_SCOPE"):null
             ],
-            "vkontakte"=>["available"=>$this->getConf("VKontakteOauth") && strlen($this->getConf("VKontakteOauth_APP_ID")) && strlen($this->getConf("VKontakteOauth_APP_ID"))
-                ,"active"=>$this->getConf("VKontakteOauth")
-                ,"client_id"=>(strlen($this->getConf("VKontakteOauth_APP_ID")))?"****":"missing"
-                ,"client_secret"=>(strlen($this->getConf("VKontakteOauth_APP_SECRET")))?"****":"missing"
+            "vkontakte"=>["available"=>$this->getConf("VkontakteOauth") && strlen($this->getConf("VkontakteOauth_CLIENT_ID")) && strlen($this->getConf("VkontakteOauth_CLIENT_SECRET"))
+                ,"active"=>$this->getConf("VkontakteOauth")
+                ,"client_id"=>(strlen($this->getConf("VkontakteOauth_CLIENT_ID")))?$this->getConf("VkontakteOauth_CLIENT_ID"):null
+                ,"client_secret"=>(strlen($this->getConf("VkontakteOauth_CLIENT_SECRET")))?$this->getConf("VkontakteOauth_CLIENT_SECRET"):null
+                ,"client_scope"=>(is_array($this->getConf("VkontakteOauth_SCOPE")))?$this->getConf("VkontakteOauth_SCOPE"):null
             ]
         ];
 }
@@ -190,6 +191,17 @@ if(!$api->error) {
                                         "access_token_secret" => $credentials[$api->params[0]]["access_token_secret"],
                                     ));
                                     $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["user_id"];
+                                    $value = $_SESSION["params_socialnetworks"][$api->params[0]];
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            } else if ("vkontakte" === $api->params[0]) {
+                                try {
+                                    $profile = $sc->checkCredentials($api->params[0], array(
+                                        "access_token" => $credentials[$api->params[0]]["access_token"],
+                                        "user_id" => $credentials[$api->params[0]]["user_id"]
+                                    ));
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["id"];
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
