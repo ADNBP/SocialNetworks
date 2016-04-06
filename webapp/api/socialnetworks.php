@@ -350,7 +350,7 @@ if(!$api->error) {
                                             }
                                             break;
                                         case "photo":
-                                            // Export user photos from FACEBOOK
+                                            // Export user photos from FACEBOOK / VKONTAKTE
                                             try {
                                                 $value = $sc->exportUserPhotos($api->params[0],
                                                     $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
@@ -731,6 +731,19 @@ if(!$api->error) {
                                         if (isset($api->formParams["link"])) {
                                             $params["link"] = $api->formParams["link"];
                                         }
+                                    } else if ("pinterest" === $api->params[0]) {
+                                        $params["username"] = $api->formParams["username"];
+                                        $params["boardname"] = $api->formParams["boardname"];
+                                        $params["content"] = $api->formParams["content"];
+                                        if (isset($api->formParams["link"])) {
+                                            $params["link"] = $api->formParams["link"];
+                                        }
+                                        if (isset($api->formParams["attachment_type"])) {
+                                            $params["attachment_type"] = $api->formParams["attachment_type"];
+                                        }
+                                        if (isset($api->formParams["attachment"])) {
+                                            $params["attachment"] = $api->formParams["attachment"];
+                                        }
                                     } else if ("twitter" === $api->params[0]) {
                                         $params["content"] = $api->formParams["content"];
                                         if (isset($api->formParams["attachment"])) {
@@ -738,6 +751,14 @@ if(!$api->error) {
                                         }
                                         if (isset($api->formParams["in_reply_to_status_id"])) {
                                             $params["in_reply_to_status_id"] = $api->formParams["in_reply_to_status_id"];
+                                        }
+                                    } else if ("vkontakte" === $api->params[0]) {
+                                        $params["content"] = $api->formParams["content"];
+                                        if (isset($api->formParams["attachment"])) {
+                                            $params["attachment"] = $api->formParams["attachment"];
+                                        }
+                                        if (isset($api->formParams["link"])) {
+                                            $params["link"] = $api->formParams["link"];
                                         }
                                     }
                                     try {
@@ -765,8 +786,8 @@ if(!$api->error) {
                                             $value = $sc->createUserPin($api->params[0],
                                                 $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
                                                 $api->params[4], $api->params[5],
-                                                $api->formParams["note"], $api->formParams["link"],
-                                                $api->formParams["image_type"],$api->formParams["image"]);
+                                                $api->formParams["content"], $api->formParams["link"],
+                                                $api->formParams["attachment_type"],$api->formParams["attachment"]);
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
