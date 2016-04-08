@@ -42,6 +42,12 @@ if(!$api->error) {
                 ,"client_id"=>(strlen($this->getConf("VkontakteOauth_CLIENT_ID")))?$this->getConf("VkontakteOauth_CLIENT_ID"):null
                 ,"client_secret"=>(strlen($this->getConf("VkontakteOauth_CLIENT_SECRET")))?$this->getConf("VkontakteOauth_CLIENT_SECRET"):null
                 ,"client_scope"=>(is_array($this->getConf("VkontakteOauth_SCOPE")))?$this->getConf("VkontakteOauth_SCOPE"):null
+            ],
+            "tumblr"=>["available"=>$this->getConf("TumblrOauth") && strlen($this->getConf("TumblrOauth_CLIENT_ID")) && strlen($this->getConf("TumblrOauth_CLIENT_SECRET"))
+                ,"active"=>$this->getConf("TumblrOauth")
+                ,"client_id"=>(strlen($this->getConf("TumblrOauth_CLIENT_ID")))?$this->getConf("TumblrOauth_CLIENT_ID"):null
+                ,"client_secret"=>(strlen($this->getConf("TumblrOauth_CLIENT_SECRET")))?$this->getConf("TumblrOauth_CLIENT_SECRET"):null
+                ,"client_scope"=>(is_array($this->getConf("TumblrOauth_SCOPE")))?$this->getConf("TumblrOauth_SCOPE"):null
             ]
         ];
 }
@@ -112,7 +118,7 @@ if(!$api->error) {
 
                             if ($api->params[2] == "endcallback") {
                                 $oauthVerifier = null;
-                                if ("twitter" === $api->params[0]) {
+                                if (("twitter" === $api->params[0]) || ("tumblr" === $api->params[0])) {
                                     $code = $_GET["oauth_token"];
                                     $oauthVerifier = $_GET["oauth_verifier"];
                                 } else {
@@ -202,6 +208,17 @@ if(!$api->error) {
                                         "user_id" => $credentials[$api->params[0]]["user_id"]
                                     ));
                                     $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["id"];
+                                    $value = $_SESSION["params_socialnetworks"][$api->params[0]];
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            } else if ("tumblr" === $api->params[0]) {
+                                try {
+                                    $profile = $sc->checkCredentials($api->params[0], array(
+                                        "access_token" => $credentials[$api->params[0]]["access_token"],
+                                        "access_token_secret" => $credentials[$api->params[0]]["access_token_secret"],
+                                    ));
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["name"] = $profile["user"]["name"];
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
@@ -359,25 +376,39 @@ if(!$api->error) {
                                                 $api->setError($e->getMessage());
                                             }
                                             break;
-                                        // GOOGLE Posts/Activities end points
                                         case "post":
-                                            // GOOGLE People who like, share or were shared an activity/post
-                                            if ("people" === $api->params[5]) {
-                                                try {
-                                                    $value = $sc->exportUserPeopleInPost($api->params[0],
-                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
-                                                        $api->params[4]);
-                                                } catch (\Exception $e) {
-                                                    $api->setError($e->getMessage());
+                                            // TUMBLR posts end poin
+                                            if ("tumblr" === $api->params[0]) {
+                                                switch($api->params[5]) {
+                                                    case "photo":
+                                                        try {
+                                                            $value = $sc->exportUserPhotoPosts($api->params[0],
+                                                                $api->params[4]);
+                                                        } catch (\Exception $e) {
+                                                            $api->setError($e->getMessage());
+                                                        }
+                                                        break;
                                                 }
-                                                // Export posts from GOOGLE+
+                                            // GOOGLE Posts/Activities end points
                                             } else {
-                                                try {
-                                                    $value = $sc->exportUserPosts($api->params[0],
-                                                        $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
-                                                        $api->params[4], $api->params[5], $api->params[6]);
-                                                } catch (\Exception $e) {
-                                                    $api->setError($e->getMessage());
+                                                // GOOGLE People who like, share or were shared an activity/post
+                                                if ("people" === $api->params[5]) {
+                                                    try {
+                                                        $value = $sc->exportUserPeopleInPost($api->params[0],
+                                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                            $api->params[4]);
+                                                    } catch (\Exception $e) {
+                                                        $api->setError($e->getMessage());
+                                                    }
+                                                    // Export posts from GOOGLE+
+                                                } else {
+                                                    try {
+                                                        $value = $sc->exportUserPosts($api->params[0],
+                                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
+                                                            $api->params[4], $api->params[5], $api->params[6]);
+                                                    } catch (\Exception $e) {
+                                                        $api->setError($e->getMessage());
+                                                    }
                                                 }
                                             }
                                             break;
@@ -759,6 +790,20 @@ if(!$api->error) {
                                         }
                                         if (isset($api->formParams["link"])) {
                                             $params["link"] = $api->formParams["link"];
+                                        }
+                                    } else if ("tumblr" === $api->params[0]) {
+                                        $params["type"] = $api->formParams["type"];
+                                        $params["blogname"] = $api->formParams["blogname"];
+                                        $params["attachment_type"] = $api->formParams["attachment_type"];
+                                        $params["attachment"] = $api->formParams["attachment"];
+                                        if (isset($api->formParams["content"])) {
+                                            $params["content"] = $api->formParams["content"];
+                                        }
+                                        if (isset($api->formParams["link"])) {
+                                            $params["link"] = $api->formParams["link"];
+                                        }
+                                        if (isset($api->formParams["state"])) {
+                                            $params["state"] = $api->formParams["state"];
                                         }
                                     }
                                     try {
