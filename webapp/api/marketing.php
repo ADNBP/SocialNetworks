@@ -59,6 +59,7 @@ if(!$api->error) {
             if(!$api->error) {
                 try {
                     $sc->setAccessToken($api->params[0], $credentials[$api->params[0]]);
+                    $mkt->setAccessToken($api->params[0], $credentials[$api->params[0]]);
                 } catch (\Exception $e) {
                     $api->setError($e->getMessage());
                 }
@@ -146,6 +147,33 @@ if(!$api->error) {
                 case "auth":
                     $_SESSION["params_socialnetworks"][$api->params[0]] = $api->formParams;
                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
+                    break;
+                case "user":
+                    switch ($api->params[2]) {
+                        case "adaccount":
+                            switch ($api->params[4]) {
+                                case "create":
+                                    switch ($api->params[5]) {
+                                        case "campaign":
+                                            try {
+                                                $parameters = array();
+                                                $parameters["name"] = $api->formParams["name"];
+                                                if (isset($api->formParams["objective"])) {
+                                                    $parameters["objective"] = $api->formParams["objective"];
+                                                }
+                                                if (isset($api->formParams["status"])) {
+                                                    $parameters["status"] = $api->formParams["status"];
+                                                }
+                                                $value = $mkt->createUserAdAccountCampaign(
+                                                    $api->params[0], $api->params[3], $parameters
+                                                );
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                    }
+                            }
+                    }
                     break;
             }
             break;
