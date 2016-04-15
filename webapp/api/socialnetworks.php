@@ -1,4 +1,5 @@
 <?php
+use DPZ\Flickr;
 use CloudFramework\Service\SocialNetworks\SocialNetworks;
 
 $api->checkMethod("GET,POST,PUT");  // allowed methods to receive GET,POST etc..
@@ -48,6 +49,12 @@ if(!$api->error) {
                 ,"client_id"=>(strlen($this->getConf("TumblrOauth_CLIENT_ID")))?$this->getConf("TumblrOauth_CLIENT_ID"):null
                 ,"client_secret"=>(strlen($this->getConf("TumblrOauth_CLIENT_SECRET")))?$this->getConf("TumblrOauth_CLIENT_SECRET"):null
                 ,"client_scope"=>(is_array($this->getConf("TumblrOauth_SCOPE")))?$this->getConf("TumblrOauth_SCOPE"):null
+            ],
+            "flickr"=>["available"=>$this->getConf("FlickrOauth") && strlen($this->getConf("FlickrOauth_CLIENT_ID")) && strlen($this->getConf("FlickrOauth_CLIENT_SECRET"))
+                ,"active"=>$this->getConf("FlickrOauth")
+                ,"client_id"=>(strlen($this->getConf("FlickrOauth_CLIENT_ID")))?$this->getConf("FlickrOauth_CLIENT_ID"):null
+                ,"client_secret"=>(strlen($this->getConf("FlickrOauth_CLIENT_SECRET")))?$this->getConf("FlickrOauth_CLIENT_SECRET"):null
+                ,"client_scope"=>(is_array($this->getConf("FlickrOauth_SCOPE")))?$this->getConf("FlickrOauth_SCOPE"):null
             ]
         ];
 }
@@ -74,9 +81,19 @@ $sc = SocialNetworks::getInstance();
 if(!$api->error) {
     if($api->params[0] != "status") {
         try {
-            $sc->setApiKeys($api->params[0], $networks[$api->params[0]]["client_id"],
-                $networks[$api->params[0]]["client_secret"],
-                $networks[$api->params[0]]["client_scope"]);
+            if ("flickr" === $api->params[0]) {
+                $redirectUrl = SocialNetworks::generateRequestUrl() . "api/socialnetworks/" .
+                    $api->params[0] . "/auth/endcallback";
+
+                $sc->setApiKeys($api->params[0], $networks[$api->params[0]]["client_id"],
+                    $networks[$api->params[0]]["client_secret"],
+                    $networks[$api->params[0]]["client_scope"],
+                    $redirectUrl);
+            } else {
+                $sc->setApiKeys($api->params[0], $networks[$api->params[0]]["client_id"],
+                    $networks[$api->params[0]]["client_secret"],
+                    $networks[$api->params[0]]["client_scope"]);
+            }
         } catch (\Exception $e) {
             $api->setError($e->getMessage());
         }
@@ -133,9 +150,11 @@ if(!$api->error) {
                             } else {
                                 $authUrl = "";
                                 try {
-                                    $authUrl = $sc->requestAuthorization($api->params[0], $redirectUrl);
-                                    header("Location: " . $authUrl);
-                                    exit;
+                                    $value = $sc->requestAuthorization($api->params[0], $redirectUrl);
+                                    if ("flickr" !== $api->params[0]) {
+                                        header("Location: " . $value);
+                                        exit;
+                                    }
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
@@ -218,7 +237,15 @@ if(!$api->error) {
                                         "access_token" => $credentials[$api->params[0]]["access_token"],
                                         "access_token_secret" => $credentials[$api->params[0]]["access_token_secret"],
                                     ));
-                                    $_SESSION["params_socialnetworks"][$api->params[0]]["name"] = $profile["user"]["name"];
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["name"] = $profile["name"];
+                                    $value = $_SESSION["params_socialnetworks"][$api->params[0]];
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            }  else if ("flickr" === $api->params[0]) {
+                                try {
+                                    $profile = $sc->checkCredentials($api->params[0], $_SESSION[Flickr::SESSION_OAUTH_DATA]);
+                                    $_SESSION["params_socialnetworks"][$api->params[0]]["checked"] = "success";
                                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
@@ -367,7 +394,7 @@ if(!$api->error) {
                                             }
                                             break;
                                         case "photo":
-                                            // Export user photos from FACEBOOK / VKONTAKTE
+                                            // Export user photos from FACEBOOK / VKONTAKTE / FLICKR
                                             try {
                                                 $value = $sc->exportUserPhotos($api->params[0],
                                                     $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
@@ -672,6 +699,9 @@ if(!$api->error) {
             switch($api->params[1]) {
                 // Save SOCIAL NETWORK in session
                 case "auth":
+                    if ("flickr" === $api->params[0]) {
+                        $_SESSION[Flickr::SESSION_OAUTH_DATA] = $api->formParams;
+                    }
                     $_SESSION["params_socialnetworks"][$api->params[0]] = $api->formParams;
                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                     break;
@@ -700,17 +730,52 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
-                                // Upload photo to facebook user's album
+                                // Upload photo to facebook user's bio album
                                 case "photo":
                                     try {
-                                        $parameters = array();
-                                        $parameters["media_type"] = $api->formParams["media_type"];
-                                        $parameters["value"] = $api->formParams["value"];
-                                        if (isset($api->formParams["title"])) {
-                                            $parameters["title"] = $api->formParams["title"];
+                                        if ("facebook" === $api->params[0]) {
+                                            $parameters = array();
+                                            $parameters["media_type"] = $api->formParams["media_type"];
+                                            $parameters["value"] = $api->formParams["value"];
+                                            if (isset($api->formParams["title"])) {
+                                                $parameters["title"] = $api->formParams["title"];
+                                            }
+                                            $value = $sc->uploadUserPhoto($api->params[0],
+                                                $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"], $parameters);
+                                        } else if ("flickr" === $api->params[0]) {
+                                            $parameters = array();
+                                            $parameters["media_type"] = $api->formParams["media_type"];
+                                            $parameters["value"] = $api->formParams["value"];
+                                            if (isset($api->formParams["title"])) {
+                                                $parameters["title"] = $api->formParams["title"];
+                                            }
+                                            if (isset($api->formParams["description"])) {
+                                                $parameters["description"] = $api->formParams["description"];
+                                            }
+                                            if (isset($api->formParams["tags"])) {
+                                                $parameters["tags"] = $api->formParams["tags"];
+                                            }
+                                            if (isset($api->formParams["is_public"])) {
+                                                $parameters["is_public"] = $api->formParams["is_public"];
+                                            }
+                                            if (isset($api->formParams["is_friend"])) {
+                                                $parameters["is_friend"] = $api->formParams["is_friend"];
+                                            }
+                                            if (isset($api->formParams["is_family"])) {
+                                                $parameters["is_family"] = $api->formParams["is_family"];
+                                            }
+                                            if (isset($api->formParams["safety_level"])) {
+                                                $parameters["safety_level"] = $api->formParams["safety_level"];
+                                            }
+                                            if (isset($api->formParams["content_type"])) {
+                                                $parameters["content_type"] = $api->formParams["content_type"];
+                                            }
+                                            if (isset($api->formParams["hidden"])) {
+                                                $parameters["hidden"] = $api->formParams["hidden"];
+                                            }
+                                            $value = $sc->uploadUserPhoto($api->params[0],
+                                                $_SESSION[Flickr::SESSION_OAUTH_DATA]["user_nsid"], $parameters);
                                         }
-                                        $value = $sc->uploadUserPhoto($api->params[0],
-                                            $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"], $parameters);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -805,6 +870,9 @@ if(!$api->error) {
                                         if (isset($api->formParams["state"])) {
                                             $params["state"] = $api->formParams["state"];
                                         }
+                                    } else if ("flickr" === $api->params[0]) {
+                                        $params["content"] = $api->formParams["content"];
+                                        $params["attachment"] = $api->formParams["attachment"];
                                     }
                                     try {
                                         $value = $sc->post($api->params[0],
