@@ -404,15 +404,33 @@ if(!$api->error) {
                                             }
                                             break;
                                         case "post":
-                                            // TUMBLR posts end poin
+                                            // TUMBLR posts end points
                                             if ("tumblr" === $api->params[0]) {
                                                 switch($api->params[5]) {
                                                     case "photo":
                                                         try {
                                                             $value = $sc->exportUserPhotoPosts($api->params[0],
-                                                                $api->params[4]);
+                                                                $api->params[4], $api->params[6]);
                                                         } catch (\Exception $e) {
                                                             $api->setError($e->getMessage());
+                                                        }
+                                                        break;
+                                                    // Tumblr dashboard posts
+                                                    default:
+                                                        if ("dashboard" === $api->params[4]) {
+                                                            try {
+                                                                $value = $sc->exportUserDashboardPosts($api->params[0],
+                                                                    $api->params[5]);
+                                                            } catch (\Exception $e) {
+                                                                $api->setError($e->getMessage());
+                                                            }
+                                                        } else if ("liked" === $api->params[4]) {
+                                                            try {
+                                                                $value = $sc->exportUserLikedPosts($api->params[0],
+                                                                    $api->params[5]);
+                                                            } catch (\Exception $e) {
+                                                                $api->setError($e->getMessage());
+                                                            }
                                                         }
                                                         break;
                                                 }
@@ -437,6 +455,19 @@ if(!$api->error) {
                                                         $api->setError($e->getMessage());
                                                     }
                                                 }
+                                            }
+                                            break;
+                                        // Tumblr blogs
+                                        case "blog":
+                                            switch($api->params[4]) {
+                                                case "followed":
+                                                    try {
+                                                        $value = $sc->exportUserFollowedBlogs($api->params[0],
+                                                            $api->params[5]);
+                                                    } catch (\Exception $e) {
+                                                        $api->setError($e->getMessage());
+                                                    }
+                                                    break;
                                             }
                                             break;
                                         case "album":
@@ -690,6 +721,28 @@ if(!$api->error) {
                                     break;
                             }
                             break;
+                        // GET TUMBLR blogs endopoints
+                        case "blog":
+                            switch($api->params[3]) {
+                                // TUMBLR Blog Info
+                                case "info":
+                                    try {
+                                        $value = $sc->getUserBlog($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // TUMBLR Blog Avatar
+                                case "avatar":
+                                    try {
+                                        $value = $sc->getUserBlogAvatar($api->params[0], $api->params[2],
+                                                                        $api->params[4]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
                     }
                     break;
             }
@@ -917,8 +970,8 @@ if(!$api->error) {
                                     break;
                             }
                             break;
-                        // Modify INSTAGRAM/PINTEREST user relationship
                         case "relationship":
+                            // Modify INSTAGRAM/PINTEREST user/user relationship
                             if ("user" === $api->params[3]) {
                                 try {
                                     $value = $sc->modifyUserRelationship($api->params[0],
@@ -927,11 +980,28 @@ if(!$api->error) {
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
+                            // Modify PINTEREST user/board relationship
                             } else if ("board" === $api->params[3]) {
                                 try {
                                     $value = $sc->modifyBoardRelationship($api->params[0],
                                         $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
                                         $api->params[4], $api->formParams["action"]);
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            // Modify TUMBLR user/blog relationship
+                            } else if ("blog" === $api->params[3]) {
+                                try {
+                                    $value = $sc->modifyBlogRelationship($api->params[0],
+                                        $api->params[4], $api->formParams["action"]);
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
+                            // Modify TUMBLR user/post relationship
+                            } else if ("post" === $api->params[3]) {
+                                try {
+                                    $value = $sc->modifyPostRelationship($api->params[0],
+                                        $api->params[4], $api->params[5], $api->formParams["action"]);
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
