@@ -741,6 +741,28 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                case "export":
+                                    switch($api->params[4]) {
+                                        // TUMBLR Blog likes from authenticated user
+                                        case "post":
+                                            try {
+                                                $value = $sc->getUserBlogLikes($api->params[0], $api->params[2],
+                                                    $api->params[6]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                        // TUMBLR Blog followers
+                                        case "follower":
+                                            try {
+                                                $value = $sc->getUserBlogFollowers($api->params[0], $api->params[2],
+                                                    $api->params[5]);
+                                            } catch (\Exception $e) {
+                                                $api->setError($e->getMessage());
+                                            }
+                                            break;
+                                    }
+                                    break;
                             }
                             break;
                     }
