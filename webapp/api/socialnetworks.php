@@ -471,7 +471,7 @@ if(!$api->error) {
                                             }
                                             break;
                                         case "album":
-                                            // Export photos inside an album FACEBOOK
+                                            // Export photos inside an album FACEBOOK / FLICKR
                                             if ("photo" === $api->params[5]) {
                                                 try {
                                                     $value = $sc->exportPhotosFromAlbum($api->params[0],
@@ -479,7 +479,7 @@ if(!$api->error) {
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
-                                            // Export albums for a FACEBOOK user
+                                            // Export albums for a FACEBOOK / FLICKR user
                                             } else {
                                                 try {
                                                     $value = $sc->exportPhotosUserAlbumsList($api->params[0],
@@ -599,6 +599,16 @@ if(!$api->error) {
                                             }
                                             break;
                                     }
+                                // FLICKR Add photo to album
+                                case "add":
+                                    try {
+                                        $value = $sc->addUserPhotoToAlbum($api->params[0],
+                                            $api->params[4], $api->params[6]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                    break;
                             }
                             break;
                         // GET PAGE endpoints
@@ -957,12 +967,13 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
-                                // Create photo album in FACEBOOK for an user
+                                // Create photo album in FACEBOOK / FLICKR for an user
                                 case "album":
                                     try {
                                         $value = $sc->createUserPhotosAlbum($api->params[0],
                                             $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"],
-                                            $api->formParams["title"], $api->formParams["caption"]);
+                                            $api->formParams["title"], $api->formParams["caption"],
+                                            $api->formParams["primary_photo_id"]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
