@@ -654,6 +654,27 @@ if(!$api->error) {
                                                 }
                                             }
                                             break;
+                                        case "post":
+                                            if ("promotable" === $api->params[5]) {
+                                                // Export page's promotable posts from FACEBOOK
+                                                try {
+                                                    $value = $sc->exportPagePromotablePosts($api->params[0],
+                                                        $api->params[2],
+                                                        $api->params[6], $api->params[7], $api->params[8]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            } else {
+                                                // Export page's feed from FACEBOOK
+                                                try {
+                                                    $value = $sc->exportPagePosts($api->params[0],
+                                                        $api->params[2],
+                                                        $api->params[5], $api->params[6], $api->params[7]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            }
+                                            break;
                                     }
                                     break;
                             }

@@ -127,11 +127,29 @@ if(!$api->error) {
                                     switch($api->params[3]) {
                                         case "current":
                                             try {
-                                                $value = $mkt->getCurrentAdAccount($api->params[0]);
+                                                $value = $mkt->getCurrentUserAdAccount($api->params[0]);
                                             } catch (\Exception $e) {
                                                 $api->setError($e->getMessage());
                                             }
                                             break;
+                                    }
+                                    break;
+                            }
+                            break;
+                        case "campaign":
+                            switch($api->params[3]) {
+                                case "info":
+                                    try {
+                                        $value = $mkt->getCampaign($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case "delete":
+                                    try {
+                                        $value = $mkt->deleteCampaign($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
                                     }
                                     break;
                             }
@@ -148,31 +166,44 @@ if(!$api->error) {
                     $_SESSION["params_socialnetworks"][$api->params[0]] = $api->formParams;
                     $value = $_SESSION["params_socialnetworks"][$api->params[0]];
                     break;
-                case "user":
-                    switch ($api->params[2]) {
-                        case "adaccount":
+                case "adaccount":
+                    switch ($api->params[3]) {
+                        case "create":
                             switch ($api->params[4]) {
-                                case "create":
-                                    switch ($api->params[5]) {
-                                        case "campaign":
-                                            try {
-                                                $parameters = array();
-                                                $parameters["name"] = $api->formParams["name"];
-                                                if (isset($api->formParams["objective"])) {
-                                                    $parameters["objective"] = $api->formParams["objective"];
-                                                }
-                                                if (isset($api->formParams["status"])) {
-                                                    $parameters["status"] = $api->formParams["status"];
-                                                }
-                                                $value = $mkt->createUserAdAccountCampaign(
-                                                    $api->params[0], $api->params[3], $parameters
-                                                );
-                                            } catch (\Exception $e) {
-                                                $api->setError($e->getMessage());
-                                            }
-                                            break;
+                                case "campaign":
+                                    try {
+                                        $parameters = array();
+                                        $parameters["name"] = $api->formParams["name"];
+                                        if (isset($api->formParams["objective"])) {
+                                            $parameters["objective"] = $api->formParams["objective"];
+                                        }
+                                        if (isset($api->formParams["status"])) {
+                                            $parameters["status"] = $api->formParams["status"];
+                                        }
+                                        $value = $mkt->createCampaign(
+                                            $api->params[0], $api->params[2], $parameters
+                                        );
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
                                     }
+                                    break;
                             }
+                    }
+                    break;
+                case "targeting":
+                    switch($api->params[2]) {
+                        case "geocoding":
+                            switch($api->params[3]) {
+                                case "search":
+                                    try {
+                                        $value = $mkt->searchGeolocationCode($api->params[0],
+                                            $api->formParams["type"], $api->formParams["text"]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
                     }
                     break;
             }
