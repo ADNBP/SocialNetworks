@@ -187,7 +187,52 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                case "adcreative":
+                                    switch ($api->params[5]) {
+                                        case "post":
+                                            $parameters = array();
+                                            $parameters["name"] = $api->formParams["name"];
+                                            $parameters["post_id"] = $api->formParams["post_id"];
+                                            $value = $mkt->createExistingPostAdCreative(
+                                                $api->params[0], $api->params[2], $parameters
+                                            );
+                                            break;
+                                    }
+                                    break;
                             }
+                            break;
+                        // Adset creation
+                        case "campaign":
+                            try {
+                                $parameters = array();
+                                $parameters["name"] = $api->formParams["name"];
+                                if (isset($api->formParams["billing_event"])) {
+                                    $parameters["billing_event"] = $api->formParams["billing_event"];
+                                }
+                                if (isset($api->formParams["countries"])) {
+                                    $parameters["countries"] = $api->formParams["countries"];
+                                }
+                                if (isset($api->formParams["daily_budget"])) {
+                                    $parameters["daily_budget"] = $api->formParams["daily_budget"];
+                                }
+                                if (isset($api->formParams["is_autobid"])) {
+                                    $parameters["is_autobid"] = $api->formParams["is_autobid"];
+                                }
+                                $value = $mkt->createAdSet(
+                                    $api->params[0], $api->params[2], $api->params[4], $parameters
+                                );
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
+                            break;
+                        // Ad creation
+                        case "adset":
+                            $parameters = array();
+                            $parameters["name"] = $api->formParams["name"];
+                            $value = $mkt->createAd(
+                                $api->params[0], $api->params[2], $api->params[4], $api->params[6],$parameters
+                            );
+                            break;
                     }
                     break;
                 case "targeting":
