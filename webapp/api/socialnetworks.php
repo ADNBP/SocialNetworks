@@ -599,6 +599,7 @@ if(!$api->error) {
                                             }
                                             break;
                                     }
+                                    break;
                                 // FLICKR Add photo to album
                                 case "add":
                                     try {
