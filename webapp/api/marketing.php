@@ -152,6 +152,38 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                case "adset":
+                                    try {
+                                        $value = $mkt->getCampaignAdSets($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case "ad":
+                                    try {
+                                        $value = $mkt->getCampaignAds($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                        case "adset":
+                            switch($api->params[3]) {
+                                case "info":
+                                    try {
+                                        $value = $mkt->getAdSet($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case "delete":
+                                    try {
+                                        $value = $mkt->deleteAdSet($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
                             }
                             break;
                     }
@@ -235,6 +267,53 @@ if(!$api->error) {
                             break;
                     }
                     break;
+                case "campaign":
+                    switch($api->params[3]) {
+                        case "update":
+                            try {
+                                $parameters = array();
+                                if (isset($api->formParams["name"])) {
+                                    $parameters["name"] = $api->formParams["name"];
+                                }
+                                if (isset($api->formParams["objective"])) {
+                                    $parameters["objective"] = $api->formParams["objective"];
+                                }
+                                if (isset($api->formParams["status"])) {
+                                    $parameters["status"] = $api->formParams["status"];
+                                }
+                                $value = $mkt->updateCampaign($api->params[0], $api->params[2],
+                                    $parameters);
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
+                            break;
+                    }
+                    break;
+                case "adset":
+                    switch($api->params[3]) {
+                        case "update":
+                            try {
+                                $parameters = array();
+                                $parameters["name"] = $api->formParams["name"];
+                                if (isset($api->formParams["billing_event"])) {
+                                    $parameters["billing_event"] = $api->formParams["billing_event"];
+                                }
+                                if (isset($api->formParams["countries"])) {
+                                    $parameters["countries"] = $api->formParams["countries"];
+                                }
+                                if (isset($api->formParams["daily_budget"])) {
+                                    $parameters["daily_budget"] = $api->formParams["daily_budget"];
+                                }
+                                if (isset($api->formParams["is_autobid"])) {
+                                    $parameters["is_autobid"] = $api->formParams["is_autobid"];
+                                }
+                                $value = $mkt->updateAdSet($api->params[0], $api->params[2],
+                                    $parameters);
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
+                            break;
+                    }
                 case "targeting":
                     switch($api->params[2]) {
                         case "geocoding":
