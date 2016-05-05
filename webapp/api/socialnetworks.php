@@ -55,6 +55,12 @@ if(!$api->error) {
                 ,"client_id"=>(strlen($this->getConf("FlickrOauth_CLIENT_ID")))?$this->getConf("FlickrOauth_CLIENT_ID"):null
                 ,"client_secret"=>(strlen($this->getConf("FlickrOauth_CLIENT_SECRET")))?$this->getConf("FlickrOauth_CLIENT_SECRET"):null
                 ,"client_scope"=>(is_array($this->getConf("FlickrOauth_SCOPE")))?$this->getConf("FlickrOauth_SCOPE"):null
+            ],
+            "reddit"=>["available"=>$this->getConf("RedditOauth") && strlen($this->getConf("RedditOauth_CLIENT_ID")) && strlen($this->getConf("RedditOauth_CLIENT_SECRET"))
+                ,"active"=>$this->getConf("RedditOauth")
+                ,"client_id"=>(strlen($this->getConf("RedditOauth_CLIENT_ID")))?$this->getConf("RedditOauth_CLIENT_ID"):null
+                ,"client_secret"=>(strlen($this->getConf("RedditOauth_CLIENT_SECRET")))?$this->getConf("RedditOauth_CLIENT_SECRET"):null
+                ,"client_scope"=>(is_array($this->getConf("RedditOauth_SCOPE")))?$this->getConf("RedditOauth_SCOPE"):null
             ]
         ];
 }
