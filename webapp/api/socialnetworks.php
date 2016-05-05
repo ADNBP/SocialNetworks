@@ -256,6 +256,15 @@ if(!$api->error) {
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
+                            } else if ("reddit" === $api->params[0]) {
+                                try {
+                                    $profile = $sc->checkCredentials($api->params[0], array(
+                                        "access_token" => $credentials[$api->params[0]]["access_token"]
+                                    ));
+                                    $value = $_SESSION["params_socialnetworks"][$api->params[0]];
+                                } catch (\Exception $e) {
+                                    $api->setError($e->getMessage());
+                                }
                             }
                             break;
                         // Refresh GOOGLE credentials and returned new ones
