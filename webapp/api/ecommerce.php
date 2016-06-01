@@ -18,8 +18,8 @@ if(!$api->error) {
         ];
 }
 
-// The structure of the API call will be: (socialnetwork|status)/{verb}
-// Check parameters and check if the social network is available..
+// The structure of the API call will be: (ecommerce|status)/{verb}
+// Check parameters and check if the ecommerce platform is available..
 $api->checkMandatoryParam(0,"Missing first parameter");
 if(!$api->error && ($api->params[0] != "status" || $api->method!= "GET")) {
     $api->checkMandatoryParam(1, "The API requires a second parameter");
@@ -75,10 +75,10 @@ if(!$api->error) {
                     $value["credentials"] = $credentials;
                     $value["platforms"] = $platforms;
                     break;
-                // The rest of social networks.
+                // The rest of ecommerce platforms.
                 default:
                     switch ($api->params[1]) {
-                        // Auth into a SOCIAL NETWORK and show the credentials in the social network
+                        // Auth into an ecommerce platform and show the credentials in the ecommerce platform
                         case "auth":
                             $redirectUrl = Ecommerce::generateRequestUrl() . "api/ecommerce/" .
                                 $api->params[0] . "/auth/endcallback";
@@ -119,11 +119,20 @@ if(!$api->error) {
                         case "export":
                             switch($api->params[2]) {
                                 case "product":
-                                    try {
-                                        $value = $ecommerce->exportProducts($api->params[0], $api->params[3],
-                                            $api->params[4]);
-                                    } catch (\Exception $e) {
-                                        $api->setError($e->getMessage());
+                                    if ("all" === $api->params[3]) {
+                                        try {
+                                            $value = $ecommerce->exportAllProducts($api->params[0], $api->params[3],
+                                                $api->params[4]);
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
+                                    } else {
+                                        try {
+                                            $value = $ecommerce->exportProducts($api->params[0], $api->params[3],
+                                                $api->params[4]);
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
                                     }
                                     break;
                                 case "collection":
@@ -145,6 +154,25 @@ if(!$api->error) {
                                     }
                                     break;
                             }
+                            break;
+                        case "shop":
+                            switch($api->params[2]) {
+                                case "info":
+                                    try {
+                                        $value = $ecommerce->getShop($api->params[0]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case "shipping":
+                                    try {
+                                        $value = $ecommerce->getShopShippingZones($api->params[0]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
                     }
                     break;
             }
@@ -152,11 +180,31 @@ if(!$api->error) {
         // POST END POINTS
         case "POST":
             switch($api->params[1]) {
-                // Save SOCIAL NETWORK in session
+                // Save E-COMMERCE PLATFORM in session
                 case "auth":
                     $_SESSION["params_ecommerce_platforms"][$api->params[0]] = $api->formParams;
                     $value = $_SESSION["params_ecommerce_platforms"][$api->params[0]];
                     break;
+                case "create":
+                    switch($api->params[2]) {
+                        case "product":
+                            try {
+                                $params = array(
+                                    "title"         =>      $api->formParams["title"],
+                                    "body_html"     =>      $api->formParams["body_html"],
+                                    "vendor"        =>      $api->formParams["vendor"],
+                                    "product_type"  =>      $api->formParams["product_type"],
+                                    "published"     =>      $api->formParams["published"],
+                                    "images"        =>      $api->formParams["images"],
+                                    "variants"      =>      $api->formParams["variants"],
+                                    "options"       =>      $api->formParams["options"]
+                                );
+                                $value = $ecommerce->createProduct($api->params[0], $params);
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
+                            break;
+                    }
             }
             break;
     }

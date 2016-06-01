@@ -4,6 +4,18 @@ use CloudFramework\Service\SocialNetworks\SocialNetworks;
 
 $api->checkMethod("GET,POST,PUT");  // allowed methods to receive GET,POST etc..
 
+setcookie("_ello_session",
+            "NWlzSWY2OEl6S1JZZzFFOGhOV1N5K2k5VFFsM1duZlh6ODVHa05USzVxR01MdExZTWEwbGE2NG1PT21jWGEvQTZ1Q2czMFVRdUNJWm5KcHZLdU5KaG5RZit5S3JaRmg2Q3g5Q0JrdHpORVNEV2dSNUE1MzRHY21SYVZKdTBnNExrNkRRbTZBL2VFM2hvMk5XaXJWM2JOckxwanJGY2V4Q1RGdWJNdVdKbldRPS0ta0pQdUovVEtsVGdvd2hzWDRtOFVkUT09",
+            null, "/", ".ello.co");
+$sc = SocialNetworks::getInstance();
+try {
+    $value = $sc->getProfile($api->params[0],null);
+} catch (\Exception $e) {
+    $api->setError($e->getMessage());
+}
+$api->addReturnData($value);
+die;
+
 // Check available Networks configured
 if(!$api->error) {
 
