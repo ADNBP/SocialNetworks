@@ -1,7 +1,7 @@
 {
     "webapp: Default dir of the webapp":"/webapp",
     "redirect: Redirect Patterns": [{
-        "/":"/api/ecommerce/status"
+        "/":"/api/ecommerce-concept/shopify/home"
     }],
     "include: Social networks credentials keys.":"{{rootPath}}/credentials.json"
 }

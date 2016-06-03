@@ -1,5 +1,5 @@
-application: ammlab-cloudframework-io
-module: testsocialnetworks
+application: lab-bloombees-com
+module: testshopify
 version: 1
 runtime: php55
 api_version: 1
