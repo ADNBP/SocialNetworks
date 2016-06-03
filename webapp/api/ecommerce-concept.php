@@ -147,17 +147,18 @@ if(!$api->error) {
                                     }
                                     break;
                                 case "collection":
+                                    $menuactive = 3;
                                     // List of products in a collection
                                     if ("product" === $api->params[4]) {
                                         try {
                                             $value = $ecommerce->exportProducts($api->params[0], $api->params[5],
                                                 $api->params[6], $api->params[3]);
+                                            $collection = $ecommerce->getCollection($api->params[0], $api->params[3]);
                                         } catch (\Exception $e) {
                                             $api->setError($e->getMessage());
                                         }
                                     // List of collections
                                     } else {
-                                        $menuactive = 3;
                                         try {
                                             $value = $ecommerce->exportCollections($api->params[0], $api->params[3], $api->params[4]);
                                         } catch (\Exception $e) {
@@ -343,7 +344,28 @@ if(!$api->error) {
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Shopify
+                <?php
+                switch($menuactive) {
+                    case 0:
+                        echo "Shopify";
+                        break;
+                    case 1:
+                        echo "Shop information";
+                        break;
+                    case 2:
+                        echo "Shipping zones";
+                        break;
+                    case 3:
+                        echo "Collections";
+                        break;
+                    case 4:
+                        echo "Products";
+                        break;
+                    case 5:
+                        echo "Export products";
+                        break;
+                }
+                ?>
             </h1>
             <ol class="breadcrumb">
                 <li<?php if ($api->params[1] === "home") { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/home"><i class="fa fa-shopping-cart"></i> Shopify</a></li>
@@ -358,7 +380,11 @@ if(!$api->error) {
                                 echo "Shipping zones";
                                 break;
                             case 3:
-                                echo "Collections";
+                                if ("product" !== $api->params[4]) {
+                                    echo "Collections";
+                                } else {
+                                    echo "<a href='/api/ecommerce-concept/".$api->params[0]."/export/collection/50/1'>Collections</a></li><li class='active'>".$collection["title"];
+                                }
                                 break;
                             case 4:
                                 echo "Products";
@@ -386,8 +412,8 @@ if(!$api->error) {
                 </div>
         <?php
             } else {
+                //print_r($value);
                 if ($menuactive == 1) {
-                    print_r($value);
                     ?>
                     <div class="row">
                         <div class="col-md-3">
@@ -415,9 +441,6 @@ if(!$api->error) {
                                         <li class="list-group-item">
                                             <b>Longitude</b> <a class="pull-right"><?php echo $value["longitude"]; ?></a>
                                         </li>
-                                        <li class="list-group-item">
-                                            <b>Latitude</b> <a class="pull-right">13,287</a>
-                                        </li>
                                     </ul>
 
                                 </div>
@@ -428,6 +451,171 @@ if(!$api->error) {
                         </div>
                     </div>
                     <!-- /.row -->
+                    <?php
+                } else if ($menuactive == 2) {
+                    ?>
+                    <div class="row">
+                        <?php
+                            foreach($value as $shippingzone) {
+                                foreach ($shippingzone["countries"] as $country) {
+                                    ?>
+                                    <div class="col-md-3">
+                                        <!-- Profile Image -->
+                                        <div class="box box-primary">
+                                            <div class="box-body box-profile">
+                                                <h3 class="profile-username text-center"><?php echo $country["name"]; ?></h3>
+                                                <p class="text-muted text-center"><?php echo $shippingzone["name"]; ?>
+                                                    , <?php echo $country["tax_name"] . " " . ($country["tax"] * 100) . "%"; ?></p>
+                                                <ul class="list-group list-group-unbordered">
+                                                    <?php foreach ($country["provinces"] as $province) { ?>
+                                                        <li class="list-group-item">
+                                                            <b><?php echo $province["name"]; ?></b>
+                                                            <a class="pull-right">
+                                                                <?php
+                                                                if ($province["tax"] == 0) {
+                                                                    echo $country["tax_name"] . " " . ($country["tax"] * 100) . "%";
+                                                                } else {
+                                                                    echo $province["tax_name"] . " " . ($province["tax"] * 100) . "%";
+                                                                }
+                                                                ?>
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
+                                                </ul>
+
+                                            </div>
+                                            <!-- /.box-body -->
+                                        </div>
+                                        <!-- /.box -->
+
+                                    </div>
+                                    <?php
+                                }
+                            }
+                        ?>
+                    </div>
+                    <!-- /.row -->
+                    <?php
+                } else if ($menuactive == 3) {
+                    if ("product" === $api->params[4]) {
+                        ?>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="box">
+                                    <div class="box-header">
+                                        <h3 class="box-title">Products of collection <b><?php echo $collection["title"]; ?></b></h3>
+
+                                        <div class="box-tools">
+                                            <div class="input-group input-group-sm" style="width: 150px;">
+                                                <input name="table_search" class="form-control pull-right" placeholder="Search" type="text">
+
+                                                <div class="input-group-btn">
+                                                    <button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /.box-header -->
+                                    <div class="box-body table-responsive no-padding">
+                                        <table class="table table-hover">
+                                            <tbody><tr>
+                                                <th>ID</th>
+                                                <th>Title</th>
+                                                <th>Vendor</th>
+                                                <th>Price</th>
+                                                <th>Image</th>
+                                                <th>Status</th>
+                                            </tr>
+                                            <?php foreach($value["products"] as $product) { ?>
+                                                <tr>
+                                                    <td><?php echo $product["id"]; ?></td>
+                                                    <td><?php echo $product["title"]; ?></td>
+                                                    <td><?php echo $product["vendor"]; ?></td>
+                                                    <td><?php echo $product["variants"][0]["price"]; ?>€</td>
+                                                    <td><img height="40px" src="<?php echo $product["image"]["src"]; ?>"></td>
+                                                    <td><?php if ($product["published_at"] === null) { echo "Hidden"; } else { echo "Public"; } ?></td>
+                                                </tr>
+                                            <?php } ?>
+                                            </tbody></table>
+                                    </div>
+                                    <!-- /.box-body -->
+                                </div>
+                                <!-- /.box -->
+                            </div>
+                        </div>
+                        <?php
+                    } else {
+                        ?>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <!-- Profile Image -->
+                                <div class="box box-primary">
+                                    <div class="box-body box-profile">
+                                        <ul class="list-group list-group-unbordered">
+                                            <?php foreach ($value["collections"] as $collection) { ?>
+                                                <li class="list-group-item">
+                                                    <b><a href="#"><?php echo $collection["title"]; ?></a></b> <a
+                                                        class="pull-right" href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/export/collection/<?php echo $collection["id"]; ?>/product/50/1">View products</a>
+                                                </li>
+                                            <?php } ?>
+                                        </ul>
+
+                                    </div>
+                                    <!-- /.box-body -->
+                                </div>
+                                <!-- /.box -->
+
+                            </div>
+                        </div>
+                        <!-- /.row -->
+                        <?php
+                    }
+                } else if ($menuactive == 4) {
+                    ?>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <h3 class="box-title">Products</h3>
+
+                                    <div class="box-tools">
+                                        <div class="input-group input-group-sm" style="width: 150px;">
+                                            <input name="table_search" class="form-control pull-right" placeholder="Search" type="text">
+
+                                            <div class="input-group-btn">
+                                                <button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body table-responsive no-padding">
+                                    <table class="table table-hover">
+                                        <tbody><tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>Vendor</th>
+                                            <th>Price</th>
+                                            <th>Image</th>
+                                            <th>Status</th>
+                                        </tr>
+                                        <?php foreach($value["products"] as $product) { ?>
+                                        <tr>
+                                            <td><?php echo $product["id"]; ?></td>
+                                            <td><?php echo $product["title"]; ?></td>
+                                            <td><?php echo $product["vendor"]; ?></td>
+                                            <td><?php echo $product["variants"][0]["price"]; ?>€</td>
+                                            <td><img height="40px" src="<?php echo $product["image"]["src"]; ?>"></td>
+                                            <td><?php if ($product["published_at"] === null) { echo "Hidden"; } else { echo "Public"; } ?></td>
+                                        </tr>
+                                        <?php } ?>
+                                        </tbody></table>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                    </div>
                     <?php
                 }
             }
