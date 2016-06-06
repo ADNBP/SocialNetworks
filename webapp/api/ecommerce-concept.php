@@ -214,13 +214,18 @@ if(!$api->error) {
                                 $images = array();
                                 $images[0] = array();
                                 $images[0]["attachment"] = ($_FILES["image"]["name"] !== null)?base64_encode(file_get_contents($_FILES["image"]["tmp_name"])):"";
+                                $variants = array();
+                                $variants[0] = array();
+                                $variants[0]["price"] = $api->formParams["price"];
+
                                 $params = array(
                                     "title"         =>      $api->formParams["title"],
                                     "body_html"     =>      $api->formParams["body_html"],
                                     "vendor"        =>      $api->formParams["vendor"],
                                     "product_type"  =>      $api->formParams["product_type"],
                                     "published"     =>      $api->formParams["published"],
-                                    "images"        =>      $images
+                                    "images"        =>      $images,
+                                    "variants"      =>      $variants
                                 );
                                 $value = $ecommerce->createProduct($api->params[0], $params);
                                 header("Location: /api/ecommerce-concept/".$api->params[0]."/export/product/50/1");
@@ -330,7 +335,7 @@ if(!$api->error) {
                         <i class="fa fa-shopping-cart"></i> <span>Shopify</span> <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="https://wonderful-store-2.myshopify.com" target="new"><i class="fa fa-eye"></i> View online store</a></li>
+                        <li><a href="https://proof-of-concept-3.myshopify.com" target="new"><i class="fa fa-eye"></i> View online store</a></li>
                         <?php if (!isset($_SESSION["params_ecommerce_platforms"][$api->params[0]])) { ?>
                             <li><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/auth"><i class="fa fa-sign-in"></i> Authentication</a></li>
                         <?php } ?>
@@ -340,7 +345,7 @@ if(!$api->error) {
                             <li<?php if ($menuactive == 3) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/export/collection/50/1"><i class="fa fa-object-group"></i> Collections</a></li>
                             <li<?php if ($menuactive == 4) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/export/product/50/1"><i class="fa fa-shopping-bag"></i> Products</a></li>
                             <li<?php if ($menuactive == 5) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/export/product/all"><i class="fa fa-arrow-left"></i> Export Products</a></li>
-                            <li<?php if ($menuactive == 6) { ?> class="active"<?php } ?>><a href="/"><i class="fa fa-arrow-right"></i> Import Products</a></li>
+                            <!--<li<?php if ($menuactive == 6) { ?> class="active"<?php } ?>><a href="/"><i class="fa fa-arrow-right"></i> Import Products</a></li>-->
                             <li<?php if ($menuactive == 7) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/shopify/product/new"><i class="fa fa-plus"></i> New product</a></li>
                         <?php } ?>
                     </ul>
@@ -704,6 +709,13 @@ if(!$api->error) {
 
                                             <div class="col-sm-10">
                                                 <textarea name="body_html" class="textarea" placeholder="Place some text here" style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="price" class="col-sm-2 control-label">Price (€)</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" id="price" name="price" placeholder="Price" type="number" required>
                                             </div>
                                         </div>
                                         <div class="form-group">
