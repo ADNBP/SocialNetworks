@@ -188,6 +188,13 @@ if(!$api->error) {
                                     break;
                             }
                             break;
+                        case "product":
+                            switch($api->params[2]) {
+                                case "new":
+                                    $menuactive = 7;
+                                    break;
+                            }
+                            break;
                     }
                     break;
             }
@@ -204,17 +211,20 @@ if(!$api->error) {
                     switch($api->params[2]) {
                         case "product":
                             try {
+                                $images = array();
+                                $images[0] = array();
+                                $images[0]["attachment"] = ($_FILES["image"]["name"] !== null)?base64_encode(file_get_contents($_FILES["image"]["tmp_name"])):"";
                                 $params = array(
                                     "title"         =>      $api->formParams["title"],
                                     "body_html"     =>      $api->formParams["body_html"],
                                     "vendor"        =>      $api->formParams["vendor"],
                                     "product_type"  =>      $api->formParams["product_type"],
                                     "published"     =>      $api->formParams["published"],
-                                    "images"        =>      $api->formParams["images"],
-                                    "variants"      =>      $api->formParams["variants"],
-                                    "options"       =>      $api->formParams["options"]
+                                    "images"        =>      $images
                                 );
                                 $value = $ecommerce->createProduct($api->params[0], $params);
+                                header("Location: /api/ecommerce-concept/".$api->params[0]."/export/product/50/1");
+                                exit;
                             } catch (\Exception $e) {
                                 $api->setError($e->getMessage());
                             }
@@ -330,7 +340,8 @@ if(!$api->error) {
                             <li<?php if ($menuactive == 3) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/export/collection/50/1"><i class="fa fa-object-group"></i> Collections</a></li>
                             <li<?php if ($menuactive == 4) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/export/product/50/1"><i class="fa fa-shopping-bag"></i> Products</a></li>
                             <li<?php if ($menuactive == 5) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/export/product/all"><i class="fa fa-arrow-left"></i> Export Products</a></li>
-                            <li><a href="/"><i class="fa fa-arrow-right"></i> Import Products</a></li>
+                            <li<?php if ($menuactive == 6) { ?> class="active"<?php } ?>><a href="/"><i class="fa fa-arrow-right"></i> Import Products</a></li>
+                            <li<?php if ($menuactive == 7) { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/shopify/product/new"><i class="fa fa-plus"></i> New product</a></li>
                         <?php } ?>
                     </ul>
                 </li>
@@ -346,9 +357,6 @@ if(!$api->error) {
             <h1>
                 <?php
                 switch($menuactive) {
-                    case 0:
-                        echo "Shopify";
-                        break;
                     case 1:
                         echo "Shop information";
                         break;
@@ -364,14 +372,18 @@ if(!$api->error) {
                     case 5:
                         echo "Export products";
                         break;
+                    case 7:
+                        echo "New product";
+                        break;
                 }
                 ?>
             </h1>
             <ol class="breadcrumb">
-                <li<?php if ($api->params[1] === "home") { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/home"><i class="fa fa-shopping-cart"></i> Shopify</a></li>
                 <?php
                     if ($api->params[1] !== "home") {
-                ?><li class="active"><?php
+                ?>
+                <li<?php if ($api->params[1] === "home") { ?> class="active"<?php } ?>><a href="/api/ecommerce-concept/<?php echo $api->params[0]; ?>/home"><i class="fa fa-shopping-cart"></i> Shopify</a></li>
+                <li class="active"><?php
                         switch($menuactive) {
                             case 1:
                                 echo "Shop information";
@@ -391,6 +403,9 @@ if(!$api->error) {
                                 break;
                             case 5:
                                 echo "Export products";
+                                break;
+                            case 7:
+                                echo "New product";
                                 break;
                         }
                     }
@@ -532,7 +547,7 @@ if(!$api->error) {
                                                     <td><?php echo $product["title"]; ?></td>
                                                     <td><?php echo $product["vendor"]; ?></td>
                                                     <td><?php echo $product["variants"][0]["price"]; ?>€</td>
-                                                    <td><img height="40px" src="<?php echo $product["image"]["src"]; ?>"></td>
+                                                    <td><?php if ($product["image"]["src"] !== null) { ?><img height="40px" src="<?php echo $product["image"]["src"]; ?>"><?php } ?></td>
                                                     <td><?php if ($product["published_at"] === null) { echo "Hidden"; } else { echo "Public"; } ?></td>
                                                 </tr>
                                             <?php } ?>
@@ -605,13 +620,128 @@ if(!$api->error) {
                                             <td><?php echo $product["title"]; ?></td>
                                             <td><?php echo $product["vendor"]; ?></td>
                                             <td><?php echo $product["variants"][0]["price"]; ?>€</td>
-                                            <td><img height="40px" src="<?php echo $product["image"]["src"]; ?>"></td>
+                                            <td><?php if ($product["image"]["src"] !== null) { ?><img height="40px" src="<?php echo $product["image"]["src"]; ?>"><?php } ?></td>
                                             <td><?php if ($product["published_at"] === null) { echo "Hidden"; } else { echo "Public"; } ?></td>
                                         </tr>
                                         <?php } ?>
                                         </tbody></table>
                                 </div>
                                 <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                    </div>
+                    <?php
+                } else if ($menuactive == 5) {
+                    ?>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <h3 class="box-title">Products</h3>
+
+                                    <div class="box-tools">
+                                        <div class="input-group input-group-sm" style="width: 150px;">
+                                            <input name="table_search" class="form-control pull-right" placeholder="Search" type="text">
+
+                                            <div class="input-group-btn">
+                                                <button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body table-responsive no-padding">
+                                    <table class="table table-hover">
+                                        <tbody><tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>Vendor</th>
+                                            <th>Price</th>
+                                            <th>Image</th>
+                                            <th>Status</th>
+                                        </tr>
+                                        <?php foreach($value as $product) { ?>
+                                            <tr>
+                                                <td><?php echo $product->getId(); ?></td>
+                                                <td><?php echo $product->getTitle(); ?></td>
+                                                <td><?php echo $product->getVendor(); ?></td>
+                                                <td><?php echo $product->getVariants()[0]->getPrice(); ?>€</td>
+                                                <td><?php if (!empty($product->getImages()) && $product->getImages()[0]->getImage() !== null) { ?><img height="40px" src="<?php echo $product->getImages()[0]->getImage(); ?>"><?php } ?></td>
+                                                <td><?php if ($product->getPublished()) { echo "Public"; } else { echo "Hidden"; } ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                        </tbody></table>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                    </div>
+                    <?php
+                } else if ($menuactive == 7) {
+                    ?>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <!-- Horizontal Form -->
+                            <div class="box box-info">
+                                <div class="box-header with-border">
+
+                                </div>
+                                <!-- /.box-header -->
+                                <!-- form start -->
+                                <form enctype="multipart/form-data" class="form-horizontal" method="post" action="/api/ecommerce-concept/shopify/create/product">
+                                    <div class="box-body">
+                                        <div class="form-group">
+                                            <label for="title" class="col-sm-2 control-label">Title</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" id="title" name="title" placeholder="Title" type="text" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="description" class="col-sm-2 control-label">Description</label>
+
+                                            <div class="col-sm-10">
+                                                <textarea name="body_html" class="textarea" placeholder="Place some text here" style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="product_type" class="col-sm-2 control-label">Product type</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" id="product_type" name="product_type" placeholder="Product type" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="vendor" class="col-sm-2 control-label">Vendor</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" id="vendor" name="vendor" placeholder="Vendor" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="image" class="col-sm-2 control-label">Image</label>
+                                            <div class="col-sm-10">
+                                                <input id="image" name="image" type="file">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-offset-2 col-sm-10">
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox" name="published"> Published
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /.box-body -->
+                                    <div class="box-footer">
+                                        <button type="submit" class="btn btn-info pull-right">Create</button>
+                                    </div>
+                                    <!-- /.box-footer -->
+                                </form>
                             </div>
                             <!-- /.box -->
                         </div>
@@ -865,5 +995,14 @@ if(!$api->error) {
 <script src="/webapp/assets/dist/js/pages/dashboard.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="/webapp/assets/dist/js/demo.js"></script>
+<script>
+    $(function () {
+        //bootstrap WYSIHTML5 - text editor
+        $(".textarea").wysihtml5({
+            "html": true,
+            "required": true
+        });
+    });
+</script>
 </body>
 </html>
