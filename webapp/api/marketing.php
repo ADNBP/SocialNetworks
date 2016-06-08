@@ -1,5 +1,4 @@
 <?php
-use CloudFramework\Service\SocialNetworks\SocialNetworks;
 use CloudFramework\Service\SocialNetworks\Marketing;
 
 $api->checkMethod("GET,POST,PUT");  // allowed methods to receive GET,POST etc..
@@ -35,18 +34,14 @@ $value =[];
 
 // Get Social network object and credentials from Session.
 $credentials = $_SESSION["params_socialnetworks"];
-$sc = SocialNetworks::getInstance();
 $mkt = Marketing::getInstance();
 
 if(!$api->error) {
     if($api->params[0] != "status") {
         try {
-            $sc->setApiKeys($api->params[0], $networks[$api->params[0]]["client_id"],
+            $mkt->setApiKeys($api->params[0], $networks[$api->params[0]]["client_id"],
                 $networks[$api->params[0]]["client_secret"],
                 $networks[$api->params[0]]["client_scope"]);
-
-            $mkt->setApiKeys($api->params[0], $networks[$api->params[0]]["client_id"],
-                $networks[$api->params[0]]["client_secret"]);
         } catch (\Exception $e) {
             $api->setError($e->getMessage());
         }
@@ -58,7 +53,7 @@ if(!$api->error) {
 
             if(!$api->error) {
                 try {
-                    $sc->setAccessToken($api->params[0], $credentials[$api->params[0]]);
+                    $mkt->setAccessToken($api->params[0], $credentials[$api->params[0]]);
                     $mkt->setAccessToken($api->params[0], $credentials[$api->params[0]]);
                 } catch (\Exception $e) {
                     $api->setError($e->getMessage());
@@ -84,21 +79,21 @@ if(!$api->error) {
                     switch ($api->params[1]) {
                         // Auth into a SOCIAL NETWORK and show the credentials in the social network
                         case "auth":
-                            $redirectUrl = SocialNetworks::generateRequestUrl() . "api/socialnetworks/" .
+                            $redirectUrl = Marketing::generateRequestUrl() . "api/marketing-concept/" .
                                 $api->params[0] . "/auth/endcallback";
 
                             if ($api->params[2] == "endcallback") {
                                 $code = $_GET["code"];
 
                                 try {
-                                    $value = $sc->confirmAuthorization($api->params[0], $code, $oauthVerifier, $redirectUrl);
+                                    $value = $mkt->confirmAuthorization($api->params[0], $code, $oauthVerifier, $redirectUrl);
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
                                 }
                             } else {
                                 $authUrl = "";
                                 try {
-                                    $authUrl = $sc->requestAuthorization($api->params[0], $redirectUrl);
+                                    $authUrl = $mkt->requestAuthorization($api->params[0], $redirectUrl);
                                     header("Location: " . $authUrl);
                                     exit;
                                 } catch (\Exception $e) {
@@ -111,7 +106,7 @@ if(!$api->error) {
                         case "check":
                             if ("facebook" === $api->params[0]) {
                                 try {
-                                    $profile = $sc->checkCredentials($api->params[0], array(
+                                    $profile = $mkt->checkCredentials($api->params[0], array(
                                         "access_token" => $credentials[$api->params[0]]["access_token"]
                                     ));
                                     $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"] = $profile["user_id"];
@@ -134,6 +129,36 @@ if(!$api->error) {
                                             break;
                                     }
                                     break;
+                                case "export":
+                                    switch($api->params[3]) {
+                                        case "adaccount":
+                                            if ($api->params[5] === "campaign") {
+                                                try {
+                                                    $value = $mkt->exportUserAdAccountCampaigns($api->params[0], $api->params[4]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            } else {
+                                                try {
+                                                    $value = $mkt->exportUserAdAccounts($api->params[0]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
+                                            }
+                                            break;
+                                    }
+                                    break;
+                            }
+                            break;
+                        case "adaccount":
+                            switch($api->params[3]) {
+                                case "info":
+                                    try {
+                                        $value = $mkt->getAdAccount($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
                             }
                             break;
                         case "campaign":
@@ -148,6 +173,20 @@ if(!$api->error) {
                                 case "delete":
                                     try {
                                         $value = $mkt->deleteCampaign($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case "adset":
+                                    try {
+                                        $value = $mkt->getCampaignAdSets($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                case "ad":
+                                    try {
+                                        $value = $mkt->getCampaignAds($api->params[0], $api->params[2]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
@@ -201,7 +240,7 @@ if(!$api->error) {
                                     break;
                             }
                             break;
-                        // Adset creation
+                            // Adset creation
                         case "campaign":
                             try {
                                 $parameters = array();
