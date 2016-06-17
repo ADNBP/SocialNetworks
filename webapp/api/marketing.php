@@ -193,6 +193,17 @@ if(!$api->error) {
                                     break;
                             }
                             break;
+                        case "adset":
+                            switch($api->params[3]) {
+                                case "ad":
+                                    try {
+                                        $value = $mkt->getAdsetAds($api->params[0], $api->params[2]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
                     }
                     break;
             }
