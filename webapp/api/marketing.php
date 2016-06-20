@@ -138,6 +138,12 @@ if(!$api->error) {
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
+                                            } else if ($api->params[5] === "adimage") {
+                                                try {
+                                                    $value = $mkt->exportUserAdAccountAdImages($api->params[0], $api->params[4]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
                                             } else {
                                                 try {
                                                     $value = $mkt->exportUserAdAccounts($api->params[0]);

@@ -138,6 +138,14 @@ if (!$api->error) {
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
+                                            } else if ($api->params[5] === "adimage") {
+                                                $menuactive = 6;
+                                                try {
+                                                    $value = $mkt->exportUserAdAccountAdImages($api->params[0], $api->params[4]);
+                                                    $adAccount = $mkt->getAdAccount($api->params[0], $api->params[4]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
                                             } else {
                                                 $menuactive = 1;
                                                 try {
@@ -430,14 +438,31 @@ if (!$api->error) {
                             }
 
                             // Ad Creative
-                            $parameters = array();
-                            $parameters["name"] = $api->formParams["ad_name"];
-                            $parameters["post_id"] = $api->formParams["promotable_post"];
-                            $value = $mkt->createExistingPostAdCreative(
-                                $api->params[0], $adAccountId, $parameters
-                            );
+                            if ($api->formParams["post"] === "new") {
+                                $parameters = array();
+                                $parameters["title"] = $api->formParams["post_title"];
+                                $parameters["body"] = $api->formParams["post_body"];
+                                $parameters["object_url"] = $api->formParams["post_url"];
+                                if ($_FILES["post_image"]["name"] !== null) {
+                                    $parameters["image_file"] = $_FILES["post_image"]["tmp_name"];
+                                    $parameters["image_extension"] = pathinfo($_FILES["post_image"]["name"], PATHINFO_EXTENSION);
+                                }
 
-                            $adCreativeId = $value["id"];
+                                $value = $mkt->createNewPostAdCreative(
+                                    $api->params[0], $adAccountId, $parameters
+                                );
+
+                                $adCreativeId = $value["id"];
+                            } else {
+                                $parameters = array();
+                                $parameters["name"] = $api->formParams["ad_name"];
+                                $parameters["post_id"] = $api->formParams["promotable_post"];
+                                $value = $mkt->createExistingPostAdCreative(
+                                    $api->params[0], $adAccountId, $parameters
+                                );
+
+                                $adCreativeId = $value["id"];
+                            }
 
                             // Ad
                             $parameters = array();
@@ -594,7 +619,9 @@ if (!$api->error) {
                             echo "Ad Accounts";
                             break;
                         case 2:
-                            echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li><li class='active'>" . $adAccount["name"];
+                            echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
+                                    <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
+                                    <li class='active'>Campaigns";
                             break;
                         case 3:
                             echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
@@ -609,6 +636,11 @@ if (!$api->error) {
                                     <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
                                     <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/campaign/" . $campaign["id"] . "/adset'>" . $campaign["name"] . "</a></li>
                                     <li class='active'>" . $adset["name"];
+                            break;
+                        case 6:
+                            echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
+                                    <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
+                                    <li class='active'>Ad Images";
                             break;
                     }
                     }
@@ -638,18 +670,7 @@ if (!$api->error) {
                             <div class="box">
                                 <div class="box-header">
                                     <h3 class="box-title">Ad Accounts</h3>
-
-                                    <div class="box-tools">
-                                        <div class="input-group input-group-sm" style="width: 150px;">
-                                            <input name="table_search" class="form-control pull-right"
-                                                   placeholder="Search" type="text">
-
-                                            <div class="input-group-btn">
-                                                <button type="submit" class="btn btn-default"><i
-                                                        class="fa fa-search"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div class="box-tools"></div>
                                 </div>
                                 <!-- /.box-header -->
                                 <div class="box-body table-responsive no-padding">
@@ -660,11 +681,11 @@ if (!$api->error) {
                                             <th>ID</th>
                                             <th>Status</th>
                                             <th>Balance</th>
+                                            <th>Properties</th>
                                         </tr>
                                         <?php foreach ($value as $adAccount) { ?>
                                             <tr>
-                                                <td>
-                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/campaign"><?php echo $adAccount["name"]; ?></a>
+                                                <td><?php echo $adAccount["name"]; ?>
                                                 </td>
                                                 <td><?php echo str_replace("act_", "", $adAccount["id"]); ?></td>
                                                 <td><?php
@@ -701,6 +722,8 @@ if (!$api->error) {
                                                     echo $status;
                                                     ?></td>
                                                 <td><?php echo $adAccount["balance"] / 100; ?>€</td>
+                                                <td><a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/campaign">Campaigns</a>&nbsp;&nbsp;
+                                                <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/adimage">Images</a></td>
                                             </tr>
                                         <?php } ?>
                                         </tbody>
@@ -720,17 +743,7 @@ if (!$api->error) {
                                 <div class="box-header">
                                     <h3 class="box-title">Campaigns</h3>
 
-                                    <div class="box-tools">
-                                        <div class="input-group input-group-sm" style="width: 150px;">
-                                            <input name="table_search" class="form-control pull-right"
-                                                   placeholder="Search" type="text">
-
-                                            <div class="input-group-btn">
-                                                <button type="submit" class="btn btn-default"><i
-                                                        class="fa fa-search"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div class="box-tools"></div>
                                 </div>
                                 <!-- /.box-header -->
                                 <div class="box-body table-responsive no-padding">
@@ -830,17 +843,7 @@ if (!$api->error) {
                                 <div class="box-header">
                                     <h3 class="box-title">Advert Sets</h3>
 
-                                    <div class="box-tools">
-                                        <div class="input-group input-group-sm" style="width: 150px;">
-                                            <input name="table_search" class="form-control pull-right"
-                                                   placeholder="Search" type="text">
-
-                                            <div class="input-group-btn">
-                                                <button type="submit" class="btn btn-default"><i
-                                                        class="fa fa-search"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div class="box-tools"></div>
                                 </div>
                                 <!-- /.box-header -->
                                 <div class="box-body table-responsive no-padding">
@@ -887,7 +890,7 @@ if (!$api->error) {
                             <!-- Horizontal Form -->
                             <div class="box box-info">
                                 <!-- form start -->
-                                <form class="form-horizontal" method="post" id="frm_ad" action="/api/marketing-concept/facebook/create/ad/<?php echo $api->params[2]; ?>">
+                                <form class="form-horizontal" method="post" id="frm_ad" action="/api/marketing-concept/facebook/create/ad/<?php echo $api->params[2]; ?>" enctype="multipart/form-data">
                                     <div class="box-header with-border">
                                         <h3 class="box-title">Campaign</h3>
                                     </div>
@@ -937,8 +940,7 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group" id="campaign_objective">
-                                            <label for="product_type" class="col-sm-2 control-label">Campaign
-                                                objective</label>
+                                            <label for="product_type" class="col-sm-2 control-label">Campaign objective</label>
 
                                             <div class="col-sm-10">
                                                 <select class="form-control" name="campaign_objective"
@@ -958,6 +960,56 @@ if (!$api->error) {
                                                                                           site before you can create this ad</option>
                                                     <option value="VIDEO_VIEWS" disabled>Create ads that make more people watch a video</option>
                                                 </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="campaign" class="col-sm-2 control-label">Post</label>
+
+                                            <div class="radio">
+                                                <label>
+                                                    <input name="post" id="post_new" value="new" checked=""
+                                                           type="radio">
+                                                    Create a new post
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-top:-15px">
+                                            <label for="campaign" class="col-sm-2 control-label">&nbsp;</label>
+
+                                            <div class="radio">
+                                                <label>
+                                                    <input name="post" id="post_existing" value="existing"
+                                                           type="radio">
+                                                    Use Existing Post
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_title" class="col-sm-2 control-label">Post title</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="post_title" placeholder="Post title" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_body" class="col-sm-2 control-label">Post body</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="post_body" placeholder="Post body" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_url" class="col-sm-2 control-label">Post url</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="post_url" placeholder="Post url" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_image" class="col-sm-2 control-label">Post image</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="post_image" type="file">
                                             </div>
                                         </div>
                                         <div class="form-group" id="user_pages">
@@ -1211,17 +1263,7 @@ if (!$api->error) {
                                 <div class="box-header">
                                     <h3 class="box-title">Adverts</h3>
 
-                                    <div class="box-tools">
-                                        <div class="input-group input-group-sm" style="width: 150px;">
-                                            <input name="table_search" class="form-control pull-right"
-                                                   placeholder="Search" type="text">
-
-                                            <div class="input-group-btn">
-                                                <button type="submit" class="btn btn-default"><i
-                                                        class="fa fa-search"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div class="box-tools"></div>
                                 </div>
                                 <!-- /.box-header -->
                                 <div class="box-body table-responsive no-padding">
@@ -1275,6 +1317,43 @@ if (!$api->error) {
                                 <h5 class="box-title">Preview: <strong><span id="preview"></span></strong></h5>
                             </div>
                             <div class="box-body" id="preview_body"></div>
+                        </div>
+                    </div>
+                    <?php
+                } else if ($menuactive == 6) {
+                    ?>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <h3 class="box-title">Ad Images</h3>
+
+                                    <div class="box-tools"></div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body table-responsive no-padding">
+                                    <table class="table table-hover">
+                                        <tbody>
+                                        <tr>
+                                            <th>AD Image Name</th>
+                                            <th>Hash</th>
+                                            <th>Status</th>
+                                            <th>Preview</th>
+                                        </tr>
+                                        <?php foreach ($value as $adimage) { ?>
+                                            <tr>
+                                                <td><?php echo $adimage["name"]; ?></a></td>
+                                                <td><?php echo $adimage["hash"]; ?></td>
+                                                <td><?php echo $adimage["status"]; ?></td>
+                                                <td><img src="<?php echo $adimage["url_128"]; ?>" height="40"></td>
+                                            </tr>
+                                        <?php } ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
                         </div>
                     </div>
                     <?php
@@ -1600,6 +1679,21 @@ if (!$api->error) {
         });
     });
 
+    $("#user_pages").hide();
+    $("#promotable_posts").hide();
+
+    $("input[name='post']").click(function () {
+        if ($(this).val() === "new") {
+            $("#user_pages").hide();
+            $("#promotable_posts").hide();
+            $(".new_post").show();
+        } else {
+            $("#user_pages").show();
+            $("#promotable_posts").show();
+            $(".new_post").hide();
+        }
+    });
+
     $("input[name='adset']").click(function () {
         if ($(this).val() === "new") {
             $("#adset_name").show();
@@ -1656,7 +1750,7 @@ if (!$api->error) {
             $("#locations").val(response.targeting.geo_locations.countries).trigger("change");
             $("#placements").val(response.targeting.page_types).trigger("change");
         });
-    })
+    });
 
     $("#user_page").change(function () {
         if ($(this).val() > 0) {
@@ -1690,16 +1784,36 @@ if (!$api->error) {
             }
         }
 
-        if ($("#user_page").val() == 0) {
-            alert("User page is required");
-            $("#user_page").focus();
-            return false;
-        }
+        if ($("input[name='post']:checked").val() == "new") {
+            if ($("input[name='post_title']").val() == "") {
+                alert("Post title is required");
+                $("input[name='post_title']").focus();
+                return false;
+            }
 
-        if ($("#promotable_post").val() == 0) {
-            alert("Promotable post is required");
-            $("#promotable_post").focus();
-            return false;
+            if ($("input[name='post_body']").val() == "") {
+                alert("Post body is required");
+                $("input[name='post_body']").focus();
+                return false;
+            }
+
+            if ($("input[name='post_url']").val() == "") {
+                alert("Post url is required");
+                $("input[name='post_url']").focus();
+                return false;
+            }
+        } else {
+            if ($("#user_page").val() == 0) {
+                alert("User page is required");
+                $("#user_page").focus();
+                return false;
+            }
+
+            if ($("#promotable_post").val() == 0) {
+                alert("Promotable post is required");
+                $("#promotable_post").focus();
+                return false;
+            }
         }
 
         if ($("input[name='adset']:checked").val() == "new") {
