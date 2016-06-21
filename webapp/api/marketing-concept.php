@@ -172,6 +172,7 @@ if (!$api->error) {
                                 case "create":
                                     $menuactive = 4;
                                     try {
+                                        $adAccount = $mkt->getAdAccount($api->params[0], $api->params[2]);
                                         $campaigns = $mkt->exportUserAdAccountCampaigns($api->params[0], $api->params[2]);
                                         $pages = $sn->exportUserPages($api->params[0],"me",100,1);
                                         $countries = $mkt->searchGeolocationCode($api->params[0], "country", "*");
@@ -231,8 +232,8 @@ if (!$api->error) {
                                 $menuactive = 5;
                                 try {
                                     $value = $mkt->getAdsetAds($api->params[0], $api->params[2]);
-                                    $adset = $mkt->getAdSet($api->params[0], $value[0]["adset_id"]);
-                                    $campaign = $mkt->getCampaign($api->params[0], $value[0]["campaign_id"]);
+                                    $adset = $mkt->getAdSet($api->params[0], $api->params[2]);
+                                    $campaign = $mkt->getCampaign($api->params[0],$adset["campaign_id"]);
                                     $adAccount = $mkt->getAdAccount($api->params[0], "act_" . $campaign["account_id"]);
                                 } catch (\Exception $e) {
                                     $api->setError($e->getMessage());
@@ -342,11 +343,15 @@ if (!$api->error) {
                             break;
                         // Ad creation
                         case "adset":
-                            $parameters = array();
-                            $parameters["name"] = $api->formParams["name"];
-                            $value = $mkt->createAd(
-                                $api->params[0], $api->params[2], $api->params[4], $api->params[6], $parameters
-                            );
+                            try {
+                                $parameters = array();
+                                $parameters["name"] = $api->formParams["name"];
+                                $value = $mkt->createAd(
+                                    $api->params[0], $api->params[2], $api->params[4], $api->params[6], $parameters
+                                );
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
                             break;
                     }
                     break;
@@ -369,109 +374,116 @@ if (!$api->error) {
                 case "create":
                     switch ($api->params[2]) {
                         case "ad":
-                            $adAccountId = $api->params[3];
-                            // Campaign
-                            $parameters = array();
-                            if ($api->formParams["campaign"] === "new") {
-                                // Create campaign
+                            try {
+                                $adAccountId = $api->params[3];
+                                // Campaign
                                 $parameters = array();
-                                $parameters["name"] = $api->formParams["campaign_name"];
-                                if (isset($api->formParams["objective"])) {
-                                    $parameters["objective"] = $api->formParams["campaign_objective"];
-                                }
-                                $value = $mkt->createCampaign(
-                                    $api->params[0], $adAccountId, $parameters
-                                );
-                                $campaignId = $value["id"];
-                            } else {
-                                $campaignId = $api->formParams["campaign_id"];
-                            }
-
-                            // Ad Set
-                            if ($api->formParams["adset"] === "new") {
-                                $parameters = array();
-                                $parameters["name"] = $api->formParams["adset_name"];
-
-                                if ($api->formParams["budget_type"] == 0) {
-                                    // Daily budget
-                                    $parameters["daily_budget"] = $api->formParams["budget_amount"];
+                                if ($api->formParams["campaign"] === "new") {
+                                    // Create campaign
+                                    $parameters = array();
+                                    $parameters["name"] = $api->formParams["campaign_name"];
+                                    if (isset($api->formParams["objective"])) {
+                                        $parameters["objective"] = $api->formParams["campaign_objective"];
+                                    }
+                                    $value = $mkt->createCampaign(
+                                        $api->params[0], $adAccountId, $parameters
+                                    );
+                                    $campaignId = $value["id"];
                                 } else {
-                                    // Lifetime budget
-                                    $parameters["lifetime_budget"] = $api->formParams["budget_amount"];
+                                    $campaignId = $api->formParams["campaign_id"];
                                 }
 
-                                if ($api->formParams["start_time"] !== "") {
-                                    $dateArr = explode("/", $api->formParams["start_time"]);
-                                    $date = new DateTime($dateArr[2]."-".$dateArr[1]."-".$dateArr[0]);
-                                    $parameters["start_time"] = $date->getTimestamp();
+                                // Ad Set
+                                if ($api->formParams["adset"] === "new") {
+                                    $parameters = array();
+                                    $parameters["name"] = $api->formParams["adset_name"];
+
+                                    if ($api->formParams["budget_type"] == 0) {
+                                        // Daily budget
+                                        $parameters["daily_budget"] = $api->formParams["budget_amount"];
+                                    } else {
+                                        // Lifetime budget
+                                        $parameters["lifetime_budget"] = $api->formParams["budget_amount"];
+                                    }
+
+                                    if ($api->formParams["start_time"] !== "") {
+                                        $dateArr = explode("/", $api->formParams["start_time"]);
+                                        $date = new DateTime($dateArr[2]."-".$dateArr[1]."-".$dateArr[0]);
+                                        $parameters["start_time"] = $date->getTimestamp();
+                                    }
+
+                                    if ($api->formParams["end_time"] !== "") {
+                                        $dateArr = explode("/", $api->formParams["end_time"]);
+                                        $date = new DateTime($dateArr[2]."-".$dateArr[1]."-".$dateArr[0]);
+                                        $parameters["end_time"] = $date->getTimestamp();
+                                    }
+
+                                    $parameters["countries"] = implode(",", $api->formParams["locations"]);
+                                    $parameters["age_min"] = $api->formParams["age_min"];
+                                    $parameters["age_max"] = $api->formParams["age_max"];
+
+                                    if ($api->formParams["gender"] !== "0") {
+                                        $parameters["gender"] = $api->formParams["gender"];
+                                    }
+
+                                    $parameters["page_types"] = $api->formParams["placements"];
+
+                                    $parameters["billing_event"] = $api->formParams["billing_event"];
+
+                                    $parameters["page_id"] =  $api->formParams["user_page"];
+
+                                    $parameters["is_autobid"] = "true";
+
+                                    $value = $mkt->createAdSet(
+                                        $api->params[0], $adAccountId, $campaignId, $parameters
+                                    );
+
+                                    $adSetId = $value["id"];
+                                } else {
+                                    $adSetId = $api->formParams["adset_id"];
                                 }
 
-                                if ($api->formParams["end_time"] !== "") {
-                                    $dateArr = explode("/", $api->formParams["end_time"]);
-                                    $date = new DateTime($dateArr[2]."-".$dateArr[1]."-".$dateArr[0]);
-                                    $parameters["end_time"] = $date->getTimestamp();
+                                // Ad Creative
+                                if ($api->formParams["post"] === "new") {
+                                    $parameters = array();
+                                    $parameters["page_id"] = $api->formParams["user_page"];
+                                    $parameters["type"] = $api->formParams["advert_type"];
+                                    $parameters["message"] = $api->formParams["advert_message"];
+                                    $parameters["link"] = $api->formParams["advert_link"];
+                                    $parameters["caption"] = $api->formParams["advert_caption"];
+                                    if ($_FILES["advert_image"]["name"] !== null) {
+                                        $parameters["image_file"] = $_FILES["advert_image"]["tmp_name"];
+                                        $parameters["image_extension"] = pathinfo($_FILES["advert_image"]["name"], PATHINFO_EXTENSION);
+                                    }
+
+                                    $value = $mkt->createNewPostAdCreative(
+                                        $api->params[0], $adAccountId, $parameters
+                                    );
+
+                                    $adCreativeId = $value["id"];
+                                } else {
+                                    $parameters = array();
+                                    $parameters["name"] = $api->formParams["ad_name"];
+                                    $parameters["post_id"] = $api->formParams["promotable_post"];
+                                    $value = $mkt->createExistingPostAdCreative(
+                                        $api->params[0], $adAccountId, $parameters
+                                    );
+
+                                    $adCreativeId = $value["id"];
                                 }
 
-                                $parameters["countries"] = implode(",", $api->formParams["locations"]);
-                                $parameters["age_min"] = $api->formParams["age_min"];
-                                $parameters["age_max"] = $api->formParams["age_max"];
-
-                                if ($api->formParams["gender"] !== "0") {
-                                    $parameters["gender"] = $api->formParams["gender"];
-                                }
-
-                                $parameters["page_types"] = $api->formParams["placements"];
-
-                                $parameters["billing_event"] = $api->formParams["billing_event"];
-
-                                $parameters["page_id"] =  $api->formParams["user_page"];
-
-                                $parameters["is_autobid"] = "true";
-
-                                $value = $mkt->createAdSet(
-                                    $api->params[0], $adAccountId, $campaignId, $parameters
-                                );
-
-                                $adSetId = $value["id"];
-                            } else {
-                                $adSetId = $api->formParams["adset_id"];
-                            }
-
-                            // Ad Creative
-                            if ($api->formParams["post"] === "new") {
-                                $parameters = array();
-                                $parameters["title"] = $api->formParams["post_title"];
-                                $parameters["body"] = $api->formParams["post_body"];
-                                $parameters["object_url"] = $api->formParams["post_url"];
-                                if ($_FILES["post_image"]["name"] !== null) {
-                                    $parameters["image_file"] = $_FILES["post_image"]["tmp_name"];
-                                    $parameters["image_extension"] = pathinfo($_FILES["post_image"]["name"], PATHINFO_EXTENSION);
-                                }
-
-                                $value = $mkt->createNewPostAdCreative(
-                                    $api->params[0], $adAccountId, $parameters
-                                );
-
-                                $adCreativeId = $value["id"];
-                            } else {
+                                // Ad
                                 $parameters = array();
                                 $parameters["name"] = $api->formParams["ad_name"];
-                                $parameters["post_id"] = $api->formParams["promotable_post"];
-                                $value = $mkt->createExistingPostAdCreative(
-                                    $api->params[0], $adAccountId, $parameters
+                                $value = $mkt->createAd(
+                                    $api->params[0], $adAccountId, $adSetId, $adCreativeId, $parameters
                                 );
 
-                                $adCreativeId = $value["id"];
+                                header("Location: /api/marketing-concept/" . $api->params[0] . "/adset/" . $adSetId . "/ad");
+                            } catch (\Exception $e) {
+                                $menuactive = 7;
+                                $api->setError($e->getMessage());
                             }
-
-                            // Ad
-                            $parameters = array();
-                            $parameters["name"] = $api->formParams["ad_name"];
-                            $value = $mkt->createAd(
-                                $api->params[0], $adAccountId, $adSetId, $adCreativeId, $parameters
-                            );
-
-                            header("Location: /api/marketing-concept/" . $api->params[0] . "/adset/" . $adSetId . "/ad");
                             break;
                     }
                     break;
@@ -629,7 +641,10 @@ if (!$api->error) {
                                     <li class='active'>" . $campaign["name"];
                             break;
                         case 4:
-                            echo "New Advert";
+                        case 7:
+                            echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
+                                    <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
+                                    <li class='active'>New Advert";
                             break;
                         case 5:
                             echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
@@ -722,10 +737,30 @@ if (!$api->error) {
                                                     echo $status;
                                                     ?></td>
                                                 <td><?php echo $adAccount["balance"] / 100; ?>€</td>
-                                                <td><a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/campaign">Campaigns</a>&nbsp;&nbsp;
-                                                <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/adimage">Images</a></td>
+                                                <td>
+                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/campaign">Campaigns</a>&nbsp;&nbsp;
+                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/adimage">Images</a>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-success">Tools</button>
+                                                        <button type="button" class="btn btn-success dropdown-toggle"
+                                                                data-toggle="dropdown">
+                                                            <span class="caret"></span>
+                                                            <span class="sr-only">Toggle Dropdown</span>
+                                                        </button>
+                                                        <ul class="dropdown-menu" role="menu">
+                                                            <li><a id="newad<?php echo $campaign["id"]; ?>"
+                                                                   href="/api/marketing-concept/<?php echo $api->params[0]; ?>/adaccount/<?php echo $adAccount["id"]; ?>/create/ad">New
+                                                                    Advert</a></li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         <?php } ?>
+                                        <tr>
+                                            <td>&nbsp;</td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -762,7 +797,7 @@ if (!$api->error) {
                                                 </td>
                                                 <td>
                                                     <?php
-                                                        switch($campaign["objective"]) {
+                                                    switch ($campaign["objective"]) {
                                                         case "POST_ENGAGEMENT":
                                                             echo "Promote your posts";
                                                             break;
@@ -802,30 +837,12 @@ if (!$api->error) {
                                                         case "VIDEO_VIEWS":
                                                             echo "Create ads that make more people watch a video ";
                                                             break;
-                                                        }
+                                                    }
                                                     ?>
                                                 </td>
                                                 <td><?php echo $campaign["effective_status"]; ?></td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn btn-success">Tools</button>
-                                                        <button type="button" class="btn btn-success dropdown-toggle"
-                                                                data-toggle="dropdown">
-                                                            <span class="caret"></span>
-                                                            <span class="sr-only">Toggle Dropdown</span>
-                                                        </button>
-                                                        <ul class="dropdown-menu" role="menu">
-                                                            <li><a id="newad<?php echo $campaign["id"]; ?>"
-                                                                   href="/api/marketing-concept/<?php echo $api->params[0]; ?>/adaccount/<?php echo "act_" . $campaign["account_id"]; ?>/create/ad">New
-                                                                    Advert</a></li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
                                             </tr>
                                         <?php } ?>
-                                        <tr>
-                                            <td>&nbsp;</td>
-                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -890,7 +907,9 @@ if (!$api->error) {
                             <!-- Horizontal Form -->
                             <div class="box box-info">
                                 <!-- form start -->
-                                <form class="form-horizontal" method="post" id="frm_ad" action="/api/marketing-concept/facebook/create/ad/<?php echo $api->params[2]; ?>" enctype="multipart/form-data">
+                                <form class="form-horizontal" method="post" id="frm_ad"
+                                      action="/api/marketing-concept/facebook/create/ad/<?php echo $api->params[2]; ?>"
+                                      enctype="multipart/form-data">
                                     <div class="box-header with-border">
                                         <h3 class="box-title">Campaign</h3>
                                     </div>
@@ -928,7 +947,8 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group" id="campaign_id">
-                                            <label for="product_type" class="col-sm-2 control-label">Existing campaign</label>
+                                            <label for="product_type" class="col-sm-2 control-label">Existing
+                                                campaign</label>
 
                                             <div class="col-sm-10">
                                                 <select class="form-control" name="campaign_id" id="existing_campaigns">
@@ -940,25 +960,50 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group" id="campaign_objective">
-                                            <label for="product_type" class="col-sm-2 control-label">Campaign objective</label>
+                                            <label for="product_type" class="col-sm-2 control-label">Campaign
+                                                objective</label>
 
                                             <div class="col-sm-10">
                                                 <select class="form-control" name="campaign_objective"
                                                         style="margin-top:10px">
                                                     <option value="POST_ENGAGEMENT">Promote your posts</option>
-                                                    <option value="CANVAS_APP_ENGAGEMENT" disabled>Increase the interaction with your application</option>
-                                                    <option value="CANVAS_APP_INSTALLS" disabled>Increase the installation of your application</option>
-                                                    <option value="EVENT_RESPONSES" disabled>Increase the number of attendants to your event</option>
-                                                    <option value="LOCAL_AWARENESS" disabled>Go to people who are near your business</option>
-                                                    <option value="MOBILE_APP_ENGAGEMENT" disabled>Increase the interaction with your mobile app</option>
-                                                    <option value="MOBILE_APP_INSTALLS" disabled>Increase the installations of your mobile app</option>
-                                                    <option value="OFFER_CLAIMS" disabled>Create offers for users to redeem in your establishment</option>
-                                                    <option value="PAGE_LIKES" disabled>Promote your page and get I like to connect with more people relevant.</option>
-                                                    <option value="PRODUCT_CATALOG_SALES" disabled>Promote a list of products you want to advertise on Facebook</option>
-                                                    <option value="LINK_CLICKS" disabled>Attract people to your website</option>
-                                                    <option value="CONVERSIONS" disabled>Increase conversions on your site. You will need a pixel conversion for your
-                                                                                          site before you can create this ad</option>
-                                                    <option value="VIDEO_VIEWS" disabled>Create ads that make more people watch a video</option>
+                                                    <option value="CANVAS_APP_ENGAGEMENT" disabled>Increase the
+                                                        interaction with your application
+                                                    </option>
+                                                    <option value="CANVAS_APP_INSTALLS" disabled>Increase the
+                                                        installation of your application
+                                                    </option>
+                                                    <option value="EVENT_RESPONSES" disabled>Increase the number of
+                                                        attendants to your event
+                                                    </option>
+                                                    <option value="LOCAL_AWARENESS" disabled>Go to people who are near
+                                                        your business
+                                                    </option>
+                                                    <option value="MOBILE_APP_ENGAGEMENT" disabled>Increase the
+                                                        interaction with your mobile app
+                                                    </option>
+                                                    <option value="MOBILE_APP_INSTALLS" disabled>Increase the
+                                                        installations of your mobile app
+                                                    </option>
+                                                    <option value="OFFER_CLAIMS" disabled>Create offers for users to
+                                                        redeem in your establishment
+                                                    </option>
+                                                    <option value="PAGE_LIKES" disabled>Promote your page and get I like
+                                                        to connect with more people relevant.
+                                                    </option>
+                                                    <option value="PRODUCT_CATALOG_SALES" disabled>Promote a list of
+                                                        products you want to advertise on Facebook
+                                                    </option>
+                                                    <option value="LINK_CLICKS" disabled>Attract people to your
+                                                        website
+                                                    </option>
+                                                    <option value="CONVERSIONS" disabled>Increase conversions on your
+                                                        site. You will need a pixel conversion for your
+                                                        site before you can create this ad
+                                                    </option>
+                                                    <option value="VIDEO_VIEWS" disabled>Create ads that make more
+                                                        people watch a video
+                                                    </option>
                                                 </select>
                                             </div>
                                         </div>
@@ -984,34 +1029,6 @@ if (!$api->error) {
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="form-group new_post">
-                                            <label for="post_title" class="col-sm-2 control-label">Post title</label>
-
-                                            <div class="col-sm-10">
-                                                <input class="form-control" name="post_title" placeholder="Post title" type="text">
-                                            </div>
-                                        </div>
-                                        <div class="form-group new_post">
-                                            <label for="post_body" class="col-sm-2 control-label">Post body</label>
-
-                                            <div class="col-sm-10">
-                                                <input class="form-control" name="post_body" placeholder="Post body" type="text">
-                                            </div>
-                                        </div>
-                                        <div class="form-group new_post">
-                                            <label for="post_url" class="col-sm-2 control-label">Post url</label>
-
-                                            <div class="col-sm-10">
-                                                <input class="form-control" name="post_url" placeholder="Post url" type="text">
-                                            </div>
-                                        </div>
-                                        <div class="form-group new_post">
-                                            <label for="post_image" class="col-sm-2 control-label">Post image</label>
-
-                                            <div class="col-sm-10">
-                                                <input class="form-control" name="post_image" type="file">
-                                            </div>
-                                        </div>
                                         <div class="form-group" id="user_pages">
                                             <label for="product_type" class="col-sm-2 control-label">User pages</label>
 
@@ -1024,15 +1041,59 @@ if (!$api->error) {
                                                     <?php } ?>
                                                 </select>
                                                 <?php if (count($pages["pages"]) > 0) { ?>
-                                                <a id="page_url" target="_blank" style="display:none" href="#">Go to page</a>
+                                                    <a id="page_url" target="_blank" style="display:none" href="#">Go to
+                                                        page</a>
                                                 <?php } ?>
                                             </div>
                                         </div>
-                                        <div class="form-group" id="promotable_posts">
-                                            <label for="product_type" class="col-sm-2 control-label">Promotable Post</label>
+                                        <div class="form-group" id="advert_types">
+                                            <label for="product_type" class="col-sm-2 control-label">Advert type</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control" name="promotable_post" id="promotable_post">
+                                                <select class="form-control" name="advert_type" id="advert_type">
+                                                    <option value="1">Link Advert</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_title" class="col-sm-2 control-label">Advert
+                                                message</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="advert_message"
+                                                       placeholder="Advert message" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_body" class="col-sm-2 control-label">Advert link</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="advert_link" placeholder="Advert link"
+                                                       type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_url" class="col-sm-2 control-label">Advert caption</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="advert_caption"
+                                                       placeholder="Advert caption" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post">
+                                            <label for="post_image" class="col-sm-2 control-label">Advert image</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="advert_image" type="file">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" id="promotable_posts">
+                                            <label for="product_type" class="col-sm-2 control-label">Promotable
+                                                Post</label>
+
+                                            <div class="col-sm-10">
+                                                <select class="form-control" name="promotable_post"
+                                                        id="promotable_post">
                                                     <option value="0">Select post ...</option>
                                                 </select>
                                             </div>
@@ -1071,7 +1132,8 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group" id="adset_name">
-                                            <label for="adset_name" class="col-sm-2 control-label">Advert Set name</label>
+                                            <label for="adset_name" class="col-sm-2 control-label">Advert Set
+                                                name</label>
 
                                             <div class="col-sm-10">
                                                 <input class="form-control" name="adset_name"
@@ -1079,10 +1141,12 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group" id="adsets">
-                                            <label for="adset_id" class="col-sm-2 control-label">Advert Sets in campaign</label>
+                                            <label for="adset_id" class="col-sm-2 control-label">Advert Sets in
+                                                campaign</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control" name="adset_id" id="adset_id" style="margin-top:10px">
+                                                <select class="form-control" name="adset_id" id="adset_id"
+                                                        style="margin-top:10px">
                                                     <option value="0">Select Advert Set ...</option>
                                                 </select>
                                             </div>
@@ -1094,7 +1158,8 @@ if (!$api->error) {
                                             <label for="adset_id" class="col-sm-2 control-label">Budget type</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control" name="budget_type" id="budget_type" style="margin-top:10px">
+                                                <select class="form-control" name="budget_type" id="budget_type"
+                                                        style="margin-top:10px">
                                                     <option value="0">Daily budget</option>
                                                     <option value="1">Lifetime budget</option>
                                                 </select>
@@ -1109,14 +1174,16 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group">
-                                            <label for="adset_name" class="col-sm-2 control-label">Schedule start</label>
+                                            <label for="adset_name" class="col-sm-2 control-label">Schedule
+                                                start</label>
 
                                             <div class="col-sm-10">
                                                 <div class="input-group date">
                                                     <div class="input-group-addon">
                                                         <i class="fa fa-calendar"></i>
                                                     </div>
-                                                    <input class="form-control pull-right datepicker" name="start_time" id="start_time" type="text" readonly>
+                                                    <input class="form-control pull-right datepicker" name="start_time"
+                                                           id="start_time" type="text" readonly>
                                                 </div>
                                                 <!-- /.input group -->
                                             </div>
@@ -1129,7 +1196,8 @@ if (!$api->error) {
                                                     <div class="input-group-addon">
                                                         <i class="fa fa-calendar"></i>
                                                     </div>
-                                                    <input class="form-control pull-right datepicker" name="end_time" id="end_time" type="text" readonly>
+                                                    <input class="form-control pull-right datepicker" name="end_time"
+                                                           id="end_time" type="text" readonly>
                                                 </div>
                                                 <!-- /.input group -->
                                             </div>
@@ -1141,9 +1209,12 @@ if (!$api->error) {
                                             <label for="location" class="col-sm-2 control-label">Location</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control select2" name="locations[]" id="locations" multiple="multiple" data-placeholder="Select countries" style="width: 100%;">
-                                                    <?php foreach($countries as $country) { ?>
-                                                    <option value="<?php echo $country["country_code"]; ?>"><?php echo $country["country_name"]; ?></option>
+                                                <select class="form-control select2" name="locations[]" id="locations"
+                                                        multiple="multiple" data-placeholder="Select countries"
+                                                        style="width: 100%;">
+                                                    <?php foreach ($countries as $country) { ?>
+                                                        <option
+                                                            value="<?php echo $country["country_code"]; ?>"><?php echo $country["country_name"]; ?></option>
                                                     <?php } ?>
                                                 </select>
                                             </div>
@@ -1152,9 +1223,10 @@ if (!$api->error) {
                                             <label for="age" class="col-sm-2 control-label">Age</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control" name="age_min" id="age_min" style="margin-top:10px">
-                                                    <?php for ($i=13; $i<65; $i++) { ?>
-                                                    <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+                                                <select class="form-control" name="age_min" id="age_min"
+                                                        style="margin-top:10px">
+                                                    <?php for ($i = 13; $i < 65; $i++) { ?>
+                                                        <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                                                     <?php } ?>
                                                     <option value="65">65+</option>
                                                 </select>
@@ -1164,8 +1236,9 @@ if (!$api->error) {
                                             <label for="age" class="col-sm-2 control-label">&nbsp;</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control" name="age_max" id="age_max" style="margin-top:10px">
-                                                    <?php for ($i=13; $i<65; $i++) { ?>
+                                                <select class="form-control" name="age_max" id="age_max"
+                                                        style="margin-top:10px">
+                                                    <?php for ($i = 13; $i < 65; $i++) { ?>
                                                         <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                                                     <?php } ?>
                                                     <option value="65">65+</option>
@@ -1176,7 +1249,8 @@ if (!$api->error) {
                                             <label for="gender" class="col-sm-2 control-label">Gender</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control" name="gender" id="gender" style="margin-top:10px">
+                                                <select class="form-control" name="gender" id="gender"
+                                                        style="margin-top:10px">
                                                     <option value="0">All</option>
                                                     <option value="1">Male</option>
                                                     <option value="2">Female</option>
@@ -1190,11 +1264,14 @@ if (!$api->error) {
                                             <label for="placements" class="col-sm-2 control-label">Placements</label>
 
                                             <div class="col-sm-10">
-                                                <select class="form-control select2" name="placements[]" id="placements" multiple="multiple" data-placeholder="Select placements" style="width: 100%;">
+                                                <select class="form-control select2" name="placements[]" id="placements"
+                                                        multiple="multiple" data-placeholder="Select placements"
+                                                        style="width: 100%;">
                                                     <option value="mobilefeed">Mobile news feed</option>
                                                     <option value="desktopfeed">Desktop news feed</option>
                                                     <option value="rightcolumn">Desktop right column</option>
-                                                    <option value="instagramstream" disabled="disabled">Instagram</option>
+                                                    <option value="instagramstream" disabled="disabled">Instagram
+                                                    </option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1202,14 +1279,17 @@ if (!$api->error) {
                                     <!-- /.box-body -->
                                     <div class="box-body">
                                         <div class="form-group">
-                                            <label class="col-sm-2 control-label"><h4>Optimisation & pricing</h4></label>
+                                            <label class="col-sm-2 control-label"><h4>Optimisation & pricing</h4>
+                                            </label>
                                         </div>
                                         <div class="form-group">
-                                            <label for="adset" class="col-sm-2 control-label">When you are charged</label>
+                                            <label for="adset" class="col-sm-2 control-label">When you are
+                                                charged</label>
 
                                             <div class="radio">
                                                 <label>
-                                                    <input name="billing_event" id="billing_event" value="IMPRESSIONS" checked="true"
+                                                    <input name="billing_event" id="billing_event" value="IMPRESSIONS"
+                                                           checked="true"
                                                            type="radio">
                                                     Impression (CPM)
                                                 </label>
@@ -1220,7 +1300,8 @@ if (!$api->error) {
 
                                             <div class="radio">
                                                 <label>
-                                                    <input name="billing_event" id="billing_event" value="POST_ENGAGEMENT"
+                                                    <input name="billing_event" id="billing_event"
+                                                           value="POST_ENGAGEMENT"
                                                            type="radio">
                                                     Post engagement
                                                 </label>
@@ -1281,9 +1362,10 @@ if (!$api->error) {
                                                 </td>
                                                 <td>|&nbsp;&nbsp;
                                                     <?php
-                                                        foreach ($adset["targeting"]["page_types"] as $pageType) {
-                                                    ?>
-                                                    <a href="javascript:void(0)" class="preview" id="<?php echo $ad["id"]."_".$pageType; ?>"><?php switch($pageType) {
+                                                    foreach ($adset["targeting"]["page_types"] as $pageType) {
+                                                        ?>
+                                                        <a href="javascript:void(0)" class="preview"
+                                                           id="<?php echo $ad["id"] . "_" . $pageType; ?>"><?php switch ($pageType) {
                                                                 case "desktopfeed":
                                                                     echo "News Feed on Facebook Desktop";
                                                                     break;
@@ -1294,9 +1376,9 @@ if (!$api->error) {
                                                                     echo "News Feed on Facebook Mobile";
                                                                     break;
                                                             }
-                                                        ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;
-                                                    <?php
-                                                        }
+                                                            ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;
+                                                        <?php
+                                                    }
                                                     ?>
                                                 </td>
                                                 <td><?php echo $ad["effective_status"]; ?></td>
@@ -1313,7 +1395,8 @@ if (!$api->error) {
                     <div class="col-xs-6">
                         <div class="box">
                             <div class="box-header">
-                                <h5 class="box-title">Advert name: <strong><span id="advert_name"></span></strong></h5><br/>
+                                <h5 class="box-title">Advert name: <strong><span id="advert_name"></span></strong></h5>
+                                <br/>
                                 <h5 class="box-title">Preview: <strong><span id="preview"></span></strong></h5>
                             </div>
                             <div class="box-body" id="preview_body"></div>
@@ -1354,6 +1437,22 @@ if (!$api->error) {
                                 <!-- /.box-body -->
                             </div>
                             <!-- /.box -->
+                        </div>
+                    </div>
+                    <?php
+                } else if ($menuactive == 7) {
+                    ?>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <h3 class="box-title">New Advert</h3>
+
+                                    <div class="box-tools"></div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body"><?php echo $e->getMessage(); ?></div>
+                            </div>
                         </div>
                     </div>
                     <?php
@@ -1679,17 +1778,16 @@ if (!$api->error) {
         });
     });
 
-    $("#user_pages").hide();
     $("#promotable_posts").hide();
 
     $("input[name='post']").click(function () {
         if ($(this).val() === "new") {
-            $("#user_pages").hide();
             $("#promotable_posts").hide();
+            $("#advert_types").show();
             $(".new_post").show();
         } else {
-            $("#user_pages").show();
             $("#promotable_posts").show();
+            $("#advert_types").hide();
             $(".new_post").hide();
         }
     });
@@ -1784,31 +1882,31 @@ if (!$api->error) {
             }
         }
 
+        if ($("#user_page").val() == 0) {
+            alert("User page is required");
+            $("#user_page").focus();
+            return false;
+        }
+
         if ($("input[name='post']:checked").val() == "new") {
-            if ($("input[name='post_title']").val() == "") {
-                alert("Post title is required");
-                $("input[name='post_title']").focus();
+            if ($("input[name='advert_message']").val() == "") {
+                alert("Advert message is required");
+                $("input[name='advert_message']").focus();
                 return false;
             }
 
-            if ($("input[name='post_body']").val() == "") {
-                alert("Post body is required");
-                $("input[name='post_body']").focus();
+            if ($("input[name='advert_link']").val() == "") {
+                alert("Advert link is required");
+                $("input[name='advert_link']").focus();
                 return false;
             }
 
-            if ($("input[name='post_url']").val() == "") {
-                alert("Post url is required");
-                $("input[name='post_url']").focus();
+            if ($("input[name='advert_caption']").val() == "") {
+                alert("Advert caption is required");
+                $("input[name='advert_caption']").focus();
                 return false;
             }
         } else {
-            if ($("#user_page").val() == 0) {
-                alert("User page is required");
-                $("#user_page").focus();
-                return false;
-            }
-
             if ($("#promotable_post").val() == 0) {
                 alert("Promotable post is required");
                 $("#promotable_post").focus();

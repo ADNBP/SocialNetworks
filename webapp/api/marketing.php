@@ -265,6 +265,9 @@ if(!$api->error) {
                                 if (isset($api->formParams["billing_event"])) {
                                     $parameters["billing_event"] = $api->formParams["billing_event"];
                                 }
+                                if (isset($api->formParams["optimization_goal"])) {
+                                    $parameters["optimization_goal"] = $api->formParams["optimization_goal"];
+                                }
                                 if (isset($api->formParams["countries"])) {
                                     $parameters["countries"] = $api->formParams["countries"];
                                 }
