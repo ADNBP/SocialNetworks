@@ -146,6 +146,14 @@ if (!$api->error) {
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
+                                            } else if ($api->params[5] === "advideo") {
+                                                $menuactive = 8;
+                                                try {
+                                                    $value = $mkt->exportUserAdAccountAdVideos($api->params[0], $api->params[4]);
+                                                    $adAccount = $mkt->getAdAccount($api->params[0], $api->params[4]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
                                             } else {
                                                 $menuactive = 1;
                                                 try {
@@ -448,12 +456,21 @@ if (!$api->error) {
                                     $parameters = array();
                                     $parameters["page_id"] = $api->formParams["user_page"];
                                     $parameters["type"] = $api->formParams["advert_type"];
-                                    $parameters["message"] = $api->formParams["advert_message"];
-                                    $parameters["link"] = $api->formParams["advert_link"];
-                                    $parameters["caption"] = $api->formParams["advert_caption"];
-                                    if ($_FILES["advert_image"]["name"] !== null) {
-                                        $parameters["image_file"] = $_FILES["advert_image"]["tmp_name"];
-                                        $parameters["image_extension"] = pathinfo($_FILES["advert_image"]["name"], PATHINFO_EXTENSION);
+                                    // Link ad
+                                    if ($parameters["type"] == 1) {
+                                        $parameters["message"] = $api->formParams["advert_message"];
+                                        $parameters["link"] = $api->formParams["advert_link"];
+                                        $parameters["caption"] = $api->formParams["advert_caption"];
+                                        if ($_FILES["advert_image"]["name"] !== null) {
+                                            $parameters["image_file"] = $_FILES["advert_image"]["tmp_name"];
+                                            $parameters["image_extension"] = pathinfo($_FILES["advert_image"]["name"], PATHINFO_EXTENSION);
+                                        }
+                                    // Video ad
+                                    } else {
+                                        $parameters["description"] = $api->formParams["video_description"];
+                                        $parameters["image_url"] = $api->formParams["video_image"];
+                                        $parameters["video_file"] = $_FILES["video_file"]["tmp_name"];
+                                        $parameters["video_file_extension"] = pathinfo($_FILES["video_file"]["name"], PATHINFO_EXTENSION);
                                     }
 
                                     $value = $mkt->createNewPostAdCreative(
@@ -657,6 +674,11 @@ if (!$api->error) {
                                     <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
                                     <li class='active'>Ad Images";
                             break;
+                        case 8:
+                            echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
+                                    <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
+                                    <li class='active'>Ad Videos";
+                            break;
                     }
                     }
                     ?>
@@ -739,7 +761,8 @@ if (!$api->error) {
                                                 <td><?php echo $adAccount["balance"] / 100; ?>€</td>
                                                 <td>
                                                     <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/campaign">Campaigns</a>&nbsp;&nbsp;
-                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/adimage">Images</a>
+                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/adimage">Images</a>&nbsp;&nbsp;
+                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/advideo">Videos</a>
                                                 </td>
                                                 <td>
                                                     <div class="btn-group">
@@ -1052,11 +1075,12 @@ if (!$api->error) {
                                             <div class="col-sm-10">
                                                 <select class="form-control" name="advert_type" id="advert_type">
                                                     <option value="1">Link Advert</option>
+                                                    <option value="2">Video Advert</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="form-group new_post">
-                                            <label for="post_title" class="col-sm-2 control-label">Advert
+                                            <label for="advert_message" class="col-sm-2 control-label">Advert
                                                 message</label>
 
                                             <div class="col-sm-10">
@@ -1065,7 +1089,7 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group new_post">
-                                            <label for="post_body" class="col-sm-2 control-label">Advert link</label>
+                                            <label for="advert_link" class="col-sm-2 control-label">Advert link</label>
 
                                             <div class="col-sm-10">
                                                 <input class="form-control" name="advert_link" placeholder="Advert link"
@@ -1073,7 +1097,7 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group new_post">
-                                            <label for="post_url" class="col-sm-2 control-label">Advert caption</label>
+                                            <label for="advert_caption" class="col-sm-2 control-label">Advert caption</label>
 
                                             <div class="col-sm-10">
                                                 <input class="form-control" name="advert_caption"
@@ -1081,10 +1105,33 @@ if (!$api->error) {
                                             </div>
                                         </div>
                                         <div class="form-group new_post">
-                                            <label for="post_image" class="col-sm-2 control-label">Advert image</label>
+                                            <label for="advert_image" class="col-sm-2 control-label">Advert image</label>
 
                                             <div class="col-sm-10">
                                                 <input class="form-control" name="advert_image" type="file">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post_video">
+                                            <label for="video_description" class="col-sm-2 control-label">Video description</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="video_description"
+                                                       placeholder="Video description" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post_video">
+                                            <label for="video_image" class="col-sm-2 control-label">Video thumbnail url</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="video_image"
+                                                       placeholder="Video thumbnail" type="text">
+                                            </div>
+                                        </div>
+                                        <div class="form-group new_post_video">
+                                            <label for="video_file" class="col-sm-2 control-label">Video file</label>
+
+                                            <div class="col-sm-10">
+                                                <input class="form-control" name="video_file" type="file">
                                             </div>
                                         </div>
                                         <div class="form-group" id="promotable_posts">
@@ -1456,6 +1503,39 @@ if (!$api->error) {
                         </div>
                     </div>
                     <?php
+                } else if ($menuactive == 8) {
+                    ?>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <h3 class="box-title">Ad Videos</h3>
+
+                                    <div class="box-tools"></div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body table-responsive no-padding">
+                                    <table class="table table-hover">
+                                        <tbody>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Video</th>
+                                        </tr>
+                                        <?php foreach ($value as $advideo) { ?>
+                                            <tr>
+                                                <td><?php echo $advideo["id"]; ?></td>
+                                                <td><a href="<?php echo $advideo["source"]; ?>" target="_blank"><img src="<?php echo $advideo["picture"]; ?>"></a></td>
+                                            </tr>
+                                        <?php } ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                    </div>
+                    <?php
                 }
             }
             ?>
@@ -1779,6 +1859,7 @@ if (!$api->error) {
     });
 
     $("#promotable_posts").hide();
+    $(".new_post_video").hide();
 
     $("input[name='post']").click(function () {
         if ($(this).val() === "new") {
@@ -1790,6 +1871,16 @@ if (!$api->error) {
             $("#advert_types").hide();
             $(".new_post").hide();
         }
+    });
+
+    $("#advert_type").change(function() {
+       if ($(this).val() == 1) {
+           $(".new_post").show();
+           $(".new_post_video").hide();
+       } else if ($(this).val() == 2) {
+           $(".new_post").hide();
+           $(".new_post_video").show();
+       }
     });
 
     $("input[name='adset']").click(function () {
@@ -1889,22 +1980,42 @@ if (!$api->error) {
         }
 
         if ($("input[name='post']:checked").val() == "new") {
-            if ($("input[name='advert_message']").val() == "") {
-                alert("Advert message is required");
-                $("input[name='advert_message']").focus();
-                return false;
-            }
+            if ($("#advert_type").val() == 1) {
+                if ($("input[name='advert_message']").val() == "") {
+                    alert("Advert message is required");
+                    $("input[name='advert_message']").focus();
+                    return false;
+                }
 
-            if ($("input[name='advert_link']").val() == "") {
-                alert("Advert link is required");
-                $("input[name='advert_link']").focus();
-                return false;
-            }
+                if ($("input[name='advert_link']").val() == "") {
+                    alert("Advert link is required");
+                    $("input[name='advert_link']").focus();
+                    return false;
+                }
 
-            if ($("input[name='advert_caption']").val() == "") {
-                alert("Advert caption is required");
-                $("input[name='advert_caption']").focus();
-                return false;
+                if ($("input[name='advert_caption']").val() == "") {
+                    alert("Advert caption is required");
+                    $("input[name='advert_caption']").focus();
+                    return false;
+                }
+            } else if ($("#advert_type").val() == 2) {
+                if ($("input[name='video_description']").val() == "") {
+                    alert("Video description is required");
+                    $("input[name='video_description']").focus();
+                    return false;
+                }
+
+                if ($("input[name='video_image']").val() == "") {
+                    alert("Video thumbnail is required");
+                    $("input[name='video_image']").focus();
+                    return false;
+                }
+
+                if ($("input[name='video_file']").val() == "") {
+                    alert("Video file is required");
+                    $("input[name='video_file']").focus();
+                    return false;
+                }
             }
         } else {
             if ($("#promotable_post").val() == 0) {
