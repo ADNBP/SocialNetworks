@@ -154,6 +154,14 @@ if (!$api->error) {
                                                 } catch (\Exception $e) {
                                                     $api->setError($e->getMessage());
                                                 }
+                                            } else if ($api->params[5] === "pixel") {
+                                                $menuactive = 9;
+                                                try {
+                                                    $value = $mkt->exportUserAdAccountPixels($api->params[0], $api->params[4]);
+                                                    $adAccount = $mkt->getAdAccount($api->params[0], $api->params[4]);
+                                                } catch (\Exception $e) {
+                                                    $api->setError($e->getMessage());
+                                                }
                                             } else {
                                                 $menuactive = 1;
                                                 try {
@@ -178,14 +186,23 @@ if (!$api->error) {
                                     break;
                                 // Create ad
                                 case "create":
-                                    $menuactive = 4;
-                                    try {
-                                        $adAccount = $mkt->getAdAccount($api->params[0], $api->params[2]);
-                                        $campaigns = $mkt->exportUserAdAccountCampaigns($api->params[0], $api->params[2]);
-                                        $pages = $sn->exportUserPages($api->params[0],"me",100,1);
-                                        $countries = $mkt->searchGeolocationCode($api->params[0], "country", "*");
-                                    } catch (\Exception $e) {
-                                        $api->setError($e->getMessage());
+                                    if ($api->params[4] === "ad") {
+                                        $menuactive = 4;
+                                        try {
+                                            $adAccount = $mkt->getAdAccount($api->params[0], $api->params[2]);
+                                            $campaigns = $mkt->exportUserAdAccountCampaigns($api->params[0], $api->params[2]);
+                                            $pages = $sn->exportUserPages($api->params[0], "me", 100, 1);
+                                            $countries = $mkt->searchGeolocationCode($api->params[0], "country", "*");
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
+                                    } else {
+                                        $menuactive = 10;
+                                        try {
+                                            $adAccount = $mkt->getAdAccount($api->params[0], $api->params[2]);
+                                        } catch (\Exception $e) {
+                                            $api->setError($e->getMessage());
+                                        }
                                     }
                                     break;
                             }
@@ -502,6 +519,22 @@ if (!$api->error) {
                                 $api->setError($e->getMessage());
                             }
                             break;
+                        case "pixel":
+                            try {
+                                $adAccountId = $api->params[3];
+
+                                $parameters = array();
+                                $parameters["name"] = $api->formParams["pixel_name"];
+                                $value = $mkt->createPixel(
+                                    $api->params[0], $adAccountId, $parameters
+                                );
+
+                                header("Location: /api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccountId . "/pixel");
+                            } catch (\Exception $e) {
+                                $menuactive = 11;
+                                $api->setError($e->getMessage());
+                            }
+                            break;
                     }
                     break;
             }
@@ -679,6 +712,17 @@ if (!$api->error) {
                                     <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
                                     <li class='active'>Ad Videos";
                             break;
+                        case 9:
+                            echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
+                                    <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
+                                    <li class='active'>Pixels";
+                            break;
+                        case 10:
+                        case 11:
+                            echo "<a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount'>Ad Accounts</a></li>
+                                    <li class='active'><a href='/api/marketing-concept/" . $api->params[0] . "/user/export/adaccount/" . $adAccount["id"] . "/campaign'>" . $adAccount["name"] . "</a></li>
+                                    <li class='active'>New Pixel";
+                            break;
                     }
                     }
                     ?>
@@ -762,7 +806,8 @@ if (!$api->error) {
                                                 <td>
                                                     <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/campaign">Campaigns</a>&nbsp;&nbsp;
                                                     <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/adimage">Images</a>&nbsp;&nbsp;
-                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/advideo">Videos</a>
+                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/advideo">Videos</a>&nbsp;&nbsp;
+                                                    <a href="/api/marketing-concept/<?php echo $api->params[0]; ?>/user/export/adaccount/<?php echo $adAccount["id"]; ?>/pixel">Pixels</a>
                                                 </td>
                                                 <td>
                                                     <div class="btn-group">
@@ -776,11 +821,17 @@ if (!$api->error) {
                                                             <li><a id="newad<?php echo $campaign["id"]; ?>"
                                                                    href="/api/marketing-concept/<?php echo $api->params[0]; ?>/adaccount/<?php echo $adAccount["id"]; ?>/create/ad">New
                                                                     Advert</a></li>
+                                                            <li><a id="newpixel"
+                                                                   href="/api/marketing-concept/<?php echo $api->params[0]; ?>/adaccount/<?php echo $adAccount["id"]; ?>/create/pixel">New
+                                                                    Pixel</a></li>
                                                         </ul>
                                                     </div>
                                                 </td>
                                             </tr>
                                         <?php } ?>
+                                        <tr>
+                                            <td>&nbsp;</td>
+                                        </tr>
                                         <tr>
                                             <td>&nbsp;</td>
                                         </tr>
@@ -1536,6 +1587,89 @@ if (!$api->error) {
                         </div>
                     </div>
                     <?php
+                } else if ($menuactive == 9) {
+                    ?>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <h3 class="box-title">Pixels</h3>
+
+                                    <div class="box-tools"></div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body table-responsive no-padding">
+                                    <table class="table table-hover">
+                                        <tbody>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Last fired time</th>
+                                        </tr>
+                                        <?php foreach ($value as $pixel) { ?>
+                                            <tr>
+                                                <td><?php echo $pixel["id"]; ?></td>
+                                                <td><?php echo $pixel["name"]; ?></td>
+                                                <td><?php echo $pixel["last_fired_time"]; ?></td>
+                                            </tr>
+                                        <?php } ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                    </div>
+                    <?php
+                } else if ($menuactive == 10) {
+            ?>
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- Horizontal Form -->
+                    <div class="box box-info">
+                        <!-- form start -->
+                        <form class="form-horizontal" method="post" id="frm_pixel"
+                              action="/api/marketing-concept/facebook/create/pixel/<?php echo $api->params[2]; ?>">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Pixel</h3>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body">
+                                <div class="form-group" id="pixel_name">
+                                    <label for="product_type" class="col-sm-2 control-label">Pixel name</label>
+
+                                    <div class="col-sm-10">
+                                        <input class="form-control" name="pixel_name"
+                                               placeholder="Pixel name" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box-footer">
+                                <button type="submit" class="btn btn-info pull-right">Create</button>
+                            </div>
+                            <!-- /.box-footer -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php
+                } else if ($menuactive == 11) {
+                    ?>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="box">
+                                <div class="box-header">
+                                    <h3 class="box-title">New Pixel</h3>
+
+                                    <div class="box-tools"></div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body"><?php echo $e->getMessage(); ?></div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php
                 }
             }
             ?>
@@ -2056,6 +2190,14 @@ if (!$api->error) {
         if ($("input[name='ad_name']").val() == "") {
             alert("Ad name is required");
             $("input[name='ad_name']").focus();
+            return false;
+        }
+    });
+
+    $("#frm_pixel").on("submit", function() {
+        if ($("input[name='pixel_name']").val() == "") {
+            alert("Pixel name is required");
+            $("input[name='pixel_name']").focus();
             return false;
         }
     });
