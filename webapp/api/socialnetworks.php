@@ -61,6 +61,12 @@ if(!$api->error) {
                 ,"client_id"=>(strlen($this->getConf("RedditOauth_CLIENT_ID")))?$this->getConf("RedditOauth_CLIENT_ID"):null
                 ,"client_secret"=>(strlen($this->getConf("RedditOauth_CLIENT_SECRET")))?$this->getConf("RedditOauth_CLIENT_SECRET"):null
                 ,"client_scope"=>(is_array($this->getConf("RedditOauth_SCOPE")))?$this->getConf("RedditOauth_SCOPE"):null
+            ],
+            "youtube"=>["available"=>$this->getConf("GoogleOauth") && strlen($this->getConf("GoogleOauth_CLIENT_ID")) && strlen($this->getConf("GoogleOauth_CLIENT_SECRET"))
+                ,"active"=>$this->getConf("GoogleOauth")
+                ,"client_id"=>(strlen($this->getConf("GoogleOauth_CLIENT_ID")))?$this->getConf("GoogleOauth_CLIENT_ID"):null
+                ,"client_secret"=>(strlen($this->getConf("GoogleOauth_CLIENT_SECRET")))?$this->getConf("GoogleOauth_CLIENT_SECRET"):null
+                ,"client_scope"=>(is_array($this->getConf("GoogleOauth_SCOPE"))) && (count($this->getConf("GoogleOauth_SCOPE")) > 0)?$this->getConf("GoogleOauth_SCOPE"):null
             ]
         ];
 }
@@ -171,7 +177,7 @@ if(!$api->error) {
                         //      expiry time updated + user id
                         //      Rest of SOCIAL NETWORKS Just get profile to check if credentials are ok
                         case "check":
-                            if ("google" === $api->params[0]) {
+                            if (("google" === $api->params[0]) || ("youtube" === $api->params[0])) {
                                 try {
                                     $profile = $sc->checkCredentials($api->params[0], array(
                                         "access_token" => $credentials[$api->params[0]]["access_token"],
@@ -293,6 +299,43 @@ if(!$api->error) {
                             try {
                                 $value = $sc->getProfile($api->params[0],
                                     $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"]);
+                            } catch (\Exception $e) {
+                                $api->setError($e->getMessage());
+                            }
+                            break;
+                        case "export":
+                            switch($api->params[2]) {
+                                // Get YOUTUBE video categories
+                                case "videocategory":
+                                    try {
+                                        $value = $sc->exportVideoCategories($api->params[0]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // Get YOUTUBE playlists
+                                case "playlist":
+                                    try {
+                                        $value = $sc->exportPlaylists($api->params[0], $api->params[3], $api->params[4],
+                                            $api->params[5]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                                // Get YOUTUBE videos
+                                case "video":
+                                    try {
+                                        $value = $sc->exportVideos($api->params[0], $api->params[3], $api->params[4],
+                                            $api->params[5]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                        case "post":
+                            try {
+                                $value = $sc->getVideo($api->params[0], $api->params[2]);
                             } catch (\Exception $e) {
                                 $api->setError($e->getMessage());
                             }
@@ -812,6 +855,24 @@ if(!$api->error) {
                                     break;
                             }
                             break;
+                        // YOUTUBE
+                        case "playlist":
+                            if ("video" === $api->params[3]) {
+                                if ("add" === $api->params[5]) {
+                                    try {
+                                        $value = $sc->addVideoToPlaylist($api->params[0], $api->params[2], $api->params[4]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                } else if ("remove" === $api->params[5]) {
+                                    try {
+                                        $value = $sc->removeVideoFromPlaylist($api->params[0], $api->params[2], $api->params[4]);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                }
+                            }
+                            break;
                     }
                     break;
             }
@@ -1176,6 +1237,43 @@ if(!$api->error) {
                                 $api->setError($e->getMessage());
                             }
                             break;
+                    }
+                    break;
+                case "create":
+                    // YOUTUBE upload video
+                    if ($api->params[2] === "post") {
+                        try {
+                            $parameters = array();
+                            $parameters["title"] = $api->formParams["title"];
+                            $parameters["description"] = $api->formParams["description"];
+                            $parameters["status"] = $api->formParams["status"];
+                            $parameters["category_id"] = $api->formParams["category_id"];
+                            $parameters["tags"] = $api->formParams["tags"];
+                            $parameters["media_type"] = $api->formParams["media_type"];
+                            $parameters["value"] = $api->formParams["value"];
+                            $value = $sc->post($api->params[0],
+                                $_SESSION["params_socialnetworks"][$api->params[0]]["user_id"], $parameters);
+                        } catch (\Exception $e) {
+                            $api->setError($e->getMessage());
+                        }
+                    // YOUTUBE create playlist
+                    } else if ($api->params[2] === "playlist") {
+                        $parameters = array();
+                        $parameters["title"] = $api->formParams["title"];
+                        $parameters["description"] = $api->formParams["description"];
+                        $parameters["status"] = $api->formParams["status"];
+                        $value = $sc->createPlaylist($api->params[0], $parameters);
+                    }
+                    break;
+                // YOUTUBE Video thumbnail
+                case "video":
+                    try {
+                        $parameters = array();
+                        $parameters["media_type"] = $api->formParams["media_type"];
+                        $parameters["value"] = $api->formParams["value"];
+                        $value = $sc->setVideoThumbnail($api->params[0], $api->params[2], $parameters);
+                    } catch (\Exception $e) {
+                        $api->setError($e->getMessage());
                     }
                     break;
             }
