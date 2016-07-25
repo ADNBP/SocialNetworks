@@ -1170,6 +1170,23 @@ if(!$api->error) {
                                         $api->setError($e->getMessage());
                                     }
                                     break;
+                                // Create a tab in a FACEBOOK page
+                                case "tab":
+                                    $params["app_id"] = $api->formParams["app_id"];
+                                    $params["custom_name"] = $api->formParams["custom_name"];
+                                    if (isset($api->formParams["custom_image_url"])) {
+                                        $params["custom_image_url"] = $api->formParams["custom_image_url"];
+                                    }
+                                    if (isset($api->formParams["position"])) {
+                                        $params["position"] = $api->formParams["position"];
+                                    }
+
+                                    try {
+                                        $value = $sc->createPageTab($api->params[0], $api->params[2], $params);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
                             }
                             break;
                         case "upload":
@@ -1201,6 +1218,19 @@ if(!$api->error) {
                                         $parameters["album_id"] = $api->params[5];
                                         $value = $sc->uploadPagePhoto($api->params[0],
                                             $api->params[2], $parameters);
+                                    } catch (\Exception $e) {
+                                        $api->setError($e->getMessage());
+                                    }
+                                    break;
+                            }
+                            break;
+                        case "simulate":
+                            switch ($api->params[4]) {
+                                // Simulate the embedded page when a FACEBOOK page tab is active/clicked
+                                case "tab":
+                                    try {
+                                        $value = $sc->simulatePageTab($api->params[0], $api->formParams["signed_request"],
+                                            $api->formParams["app_secret"]);
                                     } catch (\Exception $e) {
                                         $api->setError($e->getMessage());
                                     }
