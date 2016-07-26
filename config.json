@@ -1,7 +1,8 @@
 {
     "webapp: Default dir of the webapp":"/webapp",
     "redirect: Redirect Patterns": [{
-        "/":"/api/socialnetworks/status"
+        "/":"/api/socialnetworks/status",
+        "/pagetab-facebook":"/api/pagetab-concept/facebook/home"
     }],
     "include: Social networks credentials keys.":"{{rootPath}}/credentials.json"
 }
